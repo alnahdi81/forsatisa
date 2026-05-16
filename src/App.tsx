@@ -5,7 +5,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from 'react-router-dom';
 import { Menu, X, Instagram, Send } from 'lucide-react';
-import { TikTokIcon } from './components/Icons';
+import { WhatsAppIcon, TikTokIcon } from './components/Icons';
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from './lib/firebase';
@@ -113,6 +113,9 @@ function Footer() {
           <div className="flex gap-4">
             <a href="https://t.me/forsatisa" target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">
               <Send size={20} />
+            </a>
+            <a href="https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">
+              <WhatsAppIcon size={20} />
             </a>
             <a href="https://instagram.com/forsatisa" target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-50 text-pink-500 rounded-xl hover:bg-pink-500 hover:text-white transition-all shadow-sm">
               <Instagram size={20} />

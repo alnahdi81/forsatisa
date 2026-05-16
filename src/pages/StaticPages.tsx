@@ -34,6 +34,7 @@ export default function StaticPage({ title }: StaticPageProps) {
 
 📸 Instagram: @forsatisa
 📱 TikTok: @forsatisa
+💬 WhatsApp: https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t
 
 نعمل على الرد على جميع الرسائل بأسرع وقت ممكن بكل اهتمام واحترافية.
 فرصتي… فرصتك نحو مستقبل مهني أفضل 🌟`
@@ -69,7 +70,8 @@ export default function StaticPage({ title }: StaticPageProps) {
 
 للتواصل معنا
 📸 Instagram: @forsatisa
-📱 TikTok: @forsatisa`
+📱 TikTok: @forsatisa
+💬 WhatsApp: https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t`
     },
     'الشروط والأحكام': {
       icon: FileText,
@@ -103,7 +105,8 @@ export default function StaticPage({ title }: StaticPageProps) {
 
 التواصل معنا
 📸 Instagram: @forsatisa
-📱 TikTok: @forsatisa`
+📱 TikTok: @forsatisa
+💬 WhatsApp: https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t`
     },
     'الأسئلة الشائعة': {
       icon: HelpCircle,
@@ -141,6 +144,7 @@ export default function StaticPage({ title }: StaticPageProps) {
 
 📸 Instagram: @forsatisa
 📱 TikTok: @forsatisa
+💬 WhatsApp: https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t
 
 وسنقوم بالرد عليكم في أقرب وقت ممكن بإذن الله.`
     },
@@ -170,7 +174,8 @@ export default function StaticPage({ title }: StaticPageProps) {
 للتواصل معنا بشأن الخصوصية أو البيانات:
 
 📸 Instagram: @forsatisa
-📱 TikTok: @forsatisa`
+📱 TikTok: @forsatisa
+💬 WhatsApp: https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t`
     }
   };
 
