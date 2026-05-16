@@ -14,23 +14,31 @@ async function startServer() {
       appType: "custom",
     });
     app.use(vite.middlewares);
-  } else {
-    const distPath = path.resolve(process.cwd(), 'dist');
-    app.use(express.static(distPath));
   }
 
-  // Universal SPA Fallback
+  // Serve static files from 'dist'
+  const distPath = path.resolve(process.cwd(), 'dist');
+  app.use(express.static(distPath));
+
+  // Universal SPA Fallback - MUST be after static assets
   app.get('*', async (req, res, next) => {
+    // Skip static assets (e.g. .js, .css, .png)
+    if (req.url.includes('.') && !req.url.endsWith('.html')) {
+      return next();
+    }
+
     const url = req.originalUrl;
     try {
       if (process.env.NODE_ENV !== "production" && vite) {
-        // In dev, we must transform the index.html through Vite
         let template = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
         template = await vite.transformIndexHtml(url, template);
         return res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
       } else {
-        // In prod, serve the static index.html
-        return res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
+        const indexPath = path.resolve(distPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          return res.sendFile(indexPath);
+        }
+        return next();
       }
     } catch (e) {
       if (process.env.NODE_ENV !== "production" && vite) {
