@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://forsati-sa.com/sitemap.xml

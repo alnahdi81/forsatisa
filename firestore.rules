@@ -16,8 +16,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.email_verified == true;
     }
 
-    function isAdmin() {
+    function isSuperAdmin() {
       return isEmailVerified() && request.auth.token.email == "noamksa8@gmail.com";
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
     function isValidId(id) {
@@ -30,6 +34,15 @@ service cloud.firestore {
 
     function existing() {
       return resource.data;
+    }
+
+    // Validation for Admin
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['email', 'role', 'addedAt'])
+        && data.email is string && data.email.size() <= 200
+        && data.role in ['owner', 'employee']
+        && data.addedAt is timestamp
+        && (data.get('name', null) == null || (data.name is string && data.name.size() <= 200));
     }
 
     // Validation for Job
@@ -78,6 +91,12 @@ service cloud.firestore {
                     && incoming().email is string && incoming().email.size() <= 200 
                     && incoming().createdAt == request.time;
       allow read, delete: if isAdmin();
+    }
+
+    // Admin collection rules
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isSuperAdmin() && isValidId(adminId) && isValidAdmin(incoming());
     }
   }
 }

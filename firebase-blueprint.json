@@ -51,6 +51,18 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "createdAt"]
+    },
+    "Admin": {
+      "title": "Administrator",
+      "description": "Authorized users for the dashboard.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "Admin email" },
+        "name": { "type": "string", "description": "Admin name" },
+        "role": { "type": "string", "enum": ["owner", "employee"], "description": "Admin role" },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "addedAt"]
     }
   },
   "firestore": {
@@ -65,6 +77,10 @@
     "subscriptions": {
       "schema": "Subscription",
       "description": "User emails for newsletter/alerts."
+    },
+    "admins": {
+      "schema": "Admin",
+      "description": "User emails authorized to access the admin dashboard."
     }
   }
 }
