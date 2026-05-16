@@ -103,7 +103,7 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-8">
+      <div className="flex flex-wrap gap-2 md:gap-4 mb-8">
         {[
           { id: 'jobs', label: 'إدارة الوظائف', icon: Briefcase },
           { id: 'ads', label: 'إدارة الإعلانات', icon: Megaphone },
@@ -112,10 +112,10 @@ export default function Admin() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === tab.id ? 'bg-brand-black text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+            className={`flex items-center justify-center flex-1 md:flex-none gap-2 px-4 md:px-6 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${activeTab === tab.id ? 'bg-brand-black text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
           >
             <tab.icon size={18} />
-            {tab.label}
+            <span className="whitespace-nowrap">{tab.label}</span>
           </button>
         ))}
       </div>

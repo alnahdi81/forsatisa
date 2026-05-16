@@ -4,9 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from './lib/firebase';
-import { Menu, X, User, Instagram, Send } from 'lucide-react';
+import { Menu, X, Instagram, Send } from 'lucide-react';
 import { TikTokIcon } from './components/Icons';
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -43,11 +41,10 @@ function Navbar() {
             <Link to="/category/remote" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
             <Link to="/category/university" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>الجامعات</Link>
             <Link to="/category/training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات</Link>
-            <Link to="/category/employment_training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/employment_training' ? 'text-brand-yellow' : 'text-gray-600'}`}>تدريب توظيف</Link>
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 bg-gray-50 rounded-xl">
+            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 bg-gray-50 rounded-xl transition-all active:scale-95">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -60,7 +57,7 @@ function Navbar() {
             initial={{ opacity: 0, scaleY: 0 }}
             animate={{ opacity: 1, scaleY: 1 }}
             exit={{ opacity: 0, scaleY: 0 }}
-            className="lg:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-xl origin-top"
+            className="lg:hidden bg-white border-t border-gray-100 p-4 space-y-1 shadow-xl origin-top max-h-[80vh] overflow-y-auto"
           >
             <Link onClick={() => setIsOpen(false)} to="/" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">الرئيسية</Link>
             <Link onClick={() => setIsOpen(false)} to="/jobs" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">جميع الوظائف</Link>
