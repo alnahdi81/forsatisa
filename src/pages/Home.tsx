@@ -81,7 +81,7 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-7xl font-bold tracking-tight leading-[1.1]"
           >
-            فرصتي <span className="text-brand-yellow">نحو النجاح</span> <br /> بوابتك لأحدث الوظائف والأعمال
+            فرصتي <span className="text-brand-yellow">نحو النجاح</span>
           </motion.h1>
 
           <motion.div 

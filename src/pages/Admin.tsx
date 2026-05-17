@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
-import { signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where, onSnapshot } from 'firebase/firestore';
 import { LayoutDashboard, Plus, Trash2, Edit2, LogOut, LogIn, Image as ImageIcon, Briefcase, Megaphone, Check, Users, ShieldCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -20,49 +20,78 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearRedirectTimer = () => {
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = null;
+    }
+  };
 
   const SUPER_ADMIN_EMAIL = 'noamksa8@gmail.com';
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
+    let isMounted = true;
     
     async function checkAdmin() {
+      // If we are still loading the initial auth state, just wait
+      if (loadingAuth) return;
+
+      clearRedirectTimer();
+
       if (!user) {
-        if (!loadingAuth) setCheckingAdmin(false);
+        if (isMounted) setCheckingAdmin(false);
         return;
       }
       
+      // If we have a user, ensure we are in a checking state
+      if (isMounted) setCheckingAdmin(true);
+
       if (isSuperAdmin) {
-        setIsUserAdmin(true);
-        setCheckingAdmin(false);
+        if (isMounted) {
+          setIsUserAdmin(true);
+          setCheckingAdmin(false);
+        }
         return;
       }
 
       // Use a listener for real-time admin status
       const q = query(collection(db, 'admins'), where('email', '==', user.email));
       unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!isMounted) return;
+        
         const isAdmin = !snapshot.empty;
         setIsUserAdmin(isAdmin);
         setCheckingAdmin(false);
         
         // If not admin, redirect after a short delay
-        if (!isAdmin && !loadingAuth) {
-          const timer = setTimeout(() => {
-            navigate('/');
-          }, 3000);
-          return () => clearTimeout(timer);
+        if (!isAdmin) {
+          clearRedirectTimer();
+          redirectTimerRef.current = setTimeout(() => {
+            if (isMounted) navigate('/');
+          }, 4000); // 4 seconds to give them a chance to see the message
+        } else {
+          clearRedirectTimer();
         }
       }, (error) => {
         console.error("Admin check error:", error);
-        setIsUserAdmin(false);
-        setCheckingAdmin(false);
-        navigate('/');
+        if (isMounted) {
+          setIsUserAdmin(false);
+          setCheckingAdmin(false);
+          navigate('/');
+        }
       });
     }
 
     checkAdmin();
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+      clearRedirectTimer();
+    };
   }, [user, isSuperAdmin, loadingAuth, navigate]);
 
   useEffect(() => {
@@ -98,11 +127,34 @@ export default function Admin() {
     setLoadingData(false);
   }
 
-  const login = () => {
-    googleProvider.setCustomParameters({ prompt: 'select_account' });
-    signInWithPopup(auth, googleProvider).catch(error => {
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const login = async () => {
+    if (loginLoading) return;
+    setLoginLoading(true);
+    clearRedirectTimer();
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ 
+        prompt: 'select_account',
+        display: 'popup'
+      });
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
       console.error("Login failure:", error);
-    });
+      if (isUserAdmin === false && user) {
+        // If login failed/cancelled but user is still logged in as non-admin, 
+        // we might want to stay on the page to let them try again
+      }
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        // No action needed
+      } else {
+        alert("فشل تسجيل الدخول، يرجى المحاولة مرة أخرى أو المتصفح يمنع النوافذ المنبثقة");
+      }
+    } finally {
+      setLoginLoading(false);
+    }
   };
   const logout = () => signOut(auth);
 
@@ -122,9 +174,17 @@ export default function Admin() {
           </div>
           <h1 className="text-xl md:text-2xl font-bold mb-4">لوحة تحكم الإدارة</h1>
           <p className="text-sm md:text-base text-gray-500 mb-8 leading-relaxed">يرجى تسجيل الدخول باستخدام حساب المشرف للوصول إلى أدوات الإدارة.</p>
-          <button onClick={login} className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98]">
-            <LogIn size={20} />
-            تسجيل الدخول باستخدام جوجل
+          <button 
+            disabled={loginLoading}
+            onClick={login} 
+            className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loginLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <LogIn size={20} />
+            )}
+            {loginLoading ? 'جاري التحويل...' : 'تسجيل الدخول باستخدام جوجل'}
           </button>
         </motion.div>
       </div>
