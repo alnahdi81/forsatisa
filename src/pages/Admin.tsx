@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
-import { signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where, onSnapshot } from 'firebase/firestore';
 import { LayoutDashboard, Plus, Trash2, Edit2, LogOut, LogIn, Image as ImageIcon, Briefcase, Megaphone, Check, Users, ShieldCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +31,13 @@ export default function Admin() {
 
   const SUPER_ADMIN_EMAIL = 'noamksa8@gmail.com';
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
+
+  useEffect(() => {
+    // Handle redirect result
+    getRedirectResult(auth).catch(error => {
+      console.error("Redirect login error:", error);
+    });
+  }, []);
 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
@@ -129,28 +136,29 @@ export default function Admin() {
 
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const login = async () => {
+  const login = async (method: 'popup' | 'redirect' = 'popup') => {
     if (loginLoading) return;
     setLoginLoading(true);
     clearRedirectTimer();
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
-        prompt: 'select_account',
-        display: 'popup'
+        prompt: 'select_account'
       });
-      await signInWithPopup(auth, provider);
+      
+      if (method === 'popup') {
+        await signInWithPopup(auth, provider);
+      } else {
+        await signInWithRedirect(auth, provider);
+      }
     } catch (error: any) {
       console.error("Login failure:", error);
-      if (isUserAdmin === false && user) {
-        // If login failed/cancelled but user is still logged in as non-admin, 
-        // we might want to stay on the page to let them try again
-      }
-      
       if (error.code === 'auth/popup-closed-by-user') {
         // No action needed
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // No action needed
       } else {
-        alert("فشل تسجيل الدخول، يرجى المحاولة مرة أخرى أو المتصفح يمنع النوافذ المنبثقة");
+        alert("فشل تسجيل الدخول. تأكد من إعداد النطاقات المصرح بها في Firebase أو استخدم الطريقة البديلة.");
       }
     } finally {
       setLoginLoading(false);
@@ -174,18 +182,24 @@ export default function Admin() {
           </div>
           <h1 className="text-xl md:text-2xl font-bold mb-4">لوحة تحكم الإدارة</h1>
           <p className="text-sm md:text-base text-gray-500 mb-8 leading-relaxed">يرجى تسجيل الدخول باستخدام حساب المشرف للوصول إلى أدوات الإدارة.</p>
-          <button 
-            disabled={loginLoading}
-            onClick={login} 
-            className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loginLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <LogIn size={20} />
-            )}
-            {loginLoading ? 'جاري التحويل...' : 'تسجيل الدخول باستخدام جوجل'}
-          </button>
+          <div className="space-y-3">
+            <button 
+              disabled={loginLoading}
+              onClick={() => login('popup')} 
+              className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
+              تسجيل الدخول (نافذة منبثقة)
+            </button>
+            <button 
+              disabled={loginLoading}
+              onClick={() => login('redirect')} 
+              className="w-full bg-gray-50 text-gray-700 flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all active:scale-[0.98] disabled:opacity-50 border border-gray-100"
+            >
+              <ShieldCheck size={20} className="text-gray-400" />
+              تسجيل الدخول (طريقة بديلة)
+            </button>
+          </div>
         </motion.div>
       </div>
     );
