@@ -20,7 +20,22 @@ export default function JobDetail() {
         if (docSnap.exists()) {
           const data = docSnap.data() as Job;
           setJob({ id: docSnap.id, ...data } as Job);
-          document.title = `فرصتي - ${data.title}`;
+          const fullTitle = `فرصتي - ${data.title}`;
+          document.title = fullTitle;
+
+          // Update Meta Tags for Social Sharing
+          const updateMeta = (selector: string, content: string) => {
+            const el = document.querySelector(selector);
+            if (el) el.setAttribute('content', content);
+          };
+          updateMeta('meta[property="og:title"]', fullTitle);
+          updateMeta('meta[property="twitter:title"]', fullTitle);
+          updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${data.title} في ${data.company} عبر منصة فرصتي.`);
+          updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${data.title} في ${data.company} عبر منصة فرصتي.`);
+          if (data.image) {
+            updateMeta('meta[property="og:image"]', data.image);
+            updateMeta('meta[property="twitter:image"]', data.image);
+          }
         }
 
         // Fetch Job Detail Ad

@@ -3,7 +3,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where, onSnapshot } from 'firebase/firestore';
 import { LayoutDashboard, Plus, Trash2, Edit2, LogOut, LogIn, Image as ImageIcon, Briefcase, Megaphone, Check, Users, ShieldCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -25,6 +25,8 @@ export default function Admin() {
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
+    let unsubscribe: () => void = () => {};
+    
     async function checkAdmin() {
       if (!user) {
         if (!loadingAuth) setCheckingAdmin(false);
@@ -37,24 +39,30 @@ export default function Admin() {
         return;
       }
 
-      try {
-        const adminDoc = await getDocs(query(collection(db, 'admins'), where('email', '==', user.email)));
-        const isAdmin = !adminDoc.empty;
+      // Use a listener for real-time admin status
+      const q = query(collection(db, 'admins'), where('email', '==', user.email));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const isAdmin = !snapshot.empty;
         setIsUserAdmin(isAdmin);
+        setCheckingAdmin(false);
         
-        // إذا لم يكن مديراً، يتم تحويله للرئيسية بعد ثانية واحدة
-        if (!isAdmin) {
-          setTimeout(() => {
+        // If not admin, redirect after a short delay
+        if (!isAdmin && !loadingAuth) {
+          const timer = setTimeout(() => {
             navigate('/');
-          }, 2000);
+          }, 3000);
+          return () => clearTimeout(timer);
         }
-      } catch (e) {
+      }, (error) => {
+        console.error("Admin check error:", error);
         setIsUserAdmin(false);
+        setCheckingAdmin(false);
         navigate('/');
-      }
-      setCheckingAdmin(false);
+      });
     }
+
     checkAdmin();
+    return () => unsubscribe();
   }, [user, isSuperAdmin, loadingAuth, navigate]);
 
   useEffect(() => {
@@ -90,7 +98,12 @@ export default function Admin() {
     setLoadingData(false);
   }
 
-  const login = () => signInWithPopup(auth, googleProvider);
+  const login = () => {
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
+    signInWithPopup(auth, googleProvider).catch(error => {
+      console.error("Login failure:", error);
+    });
+  };
   const logout = () => signOut(auth);
 
   if (loadingAuth || checkingAdmin) return (
@@ -125,9 +138,10 @@ export default function Admin() {
           <X size={32} />
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-red-500">عذراً، لا تملك صلاحية الوصول</h1>
-        <p className="text-gray-500 max-w-sm mx-auto">هذه الصفحة مخصصة للمدراء المعتمدين فقط. إذا كنت تعتقد أنك يجب أن تملك وصولاً، يرجى التواصل مع المسؤول.</p>
-        <div className="pt-4">
-           <button onClick={logout} className="bg-gray-100 px-6 py-2 rounded-xl font-bold hover:bg-gray-200 transition-all">تسجيل الخروج</button>
+        <p className="text-gray-500 max-w-sm mx-auto">هذه الصفحة مخصصة للمدراء المعتمدين فقط. سيتم توجيهك للرئيسية تلقائياً...</p>
+        <div className="pt-4 flex flex-col md:flex-row items-center justify-center gap-3">
+           <button onClick={() => navigate('/')} className="w-full md:w-auto bg-brand-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all">العودة للرئيسية</button>
+           <button onClick={logout} className="w-full md:w-auto bg-gray-100 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all">تسجيل الخروج</button>
         </div>
       </div>
     );
@@ -158,6 +172,9 @@ export default function Admin() {
               إضافة مشرف
             </button>
           )}
+          <button onClick={() => navigate('/')} title="العودة للرئيسية" className="p-3 bg-white border border-gray-100 shadow-sm rounded-xl text-gray-400 hover:text-brand-yellow hover:bg-yellow-50 transition-all shrink-0">
+            <Briefcase size={20} />
+          </button>
           <button onClick={logout} title="تسجيل الخروج" className="p-3 bg-white border border-gray-100 shadow-sm rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all shrink-0">
             <LogOut size={20} />
           </button>

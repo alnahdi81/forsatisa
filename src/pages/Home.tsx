@@ -13,7 +13,18 @@ export default function Home() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    document.title = "فرصتي - بوابة الوظائف";
+    const defaultTitle = "فرصتي .. نحو النجاح";
+    document.title = defaultTitle;
+    
+    // Reset Meta Tags
+    const updateMeta = (selector: string, content: string) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute('content', content);
+    };
+    updateMeta('meta[property="og:title"]', defaultTitle);
+    updateMeta('meta[property="twitter:title"]', defaultTitle);
+    updateMeta('meta[property="og:description"]', "فرصتي .. نحو النجاح، بوابتك للبحث عن أحدث الوظائف الشاغرة في المملكة العربية السعودية.");
+    updateMeta('meta[property="twitter:description"]', "فرصتي .. نحو النجاح، بوابتك للبحث عن أحدث الوظائف الشاغرة في المملكة العربية السعودية.");
     
     // Jobs listener
     const jq = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'), limit(12));
@@ -70,7 +81,7 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-7xl font-bold tracking-tight leading-[1.1]"
           >
-            ابحث عن <span className="text-brand-yellow">وظيفة أحلامك</span> <br /> في المملكة العربية السعودية
+            فرصتي <span className="text-brand-yellow">نحو النجاح</span> <br /> بوابتك لأحدث الوظائف والأعمال
           </motion.h1>
 
           <motion.div 
