@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where, onSnapshot } from 'firebase/firestore';
 import { LayoutDashboard, Plus, Trash2, Edit2, LogOut, LogIn, Image as ImageIcon, Briefcase, Megaphone, Check, Users, ShieldCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -47,10 +47,11 @@ export default function Admin() {
       // If we are still loading the initial auth state, just wait
       if (loadingAuth) return;
 
-      clearRedirectTimer();
-
       if (!user) {
-        if (isMounted) setCheckingAdmin(false);
+        if (isMounted) {
+          setCheckingAdmin(false);
+          setIsUserAdmin(false);
+        }
         return;
       }
       
@@ -73,22 +74,11 @@ export default function Admin() {
         const isAdmin = !snapshot.empty;
         setIsUserAdmin(isAdmin);
         setCheckingAdmin(false);
-        
-        // If not admin, redirect after a short delay
-        if (!isAdmin) {
-          clearRedirectTimer();
-          redirectTimerRef.current = setTimeout(() => {
-            if (isMounted) navigate('/');
-          }, 4000); // 4 seconds to give them a chance to see the message
-        } else {
-          clearRedirectTimer();
-        }
       }, (error) => {
         console.error("Admin check error:", error);
         if (isMounted) {
           setIsUserAdmin(false);
           setCheckingAdmin(false);
-          navigate('/');
         }
       });
     }
@@ -97,9 +87,8 @@ export default function Admin() {
     return () => {
       isMounted = false;
       unsubscribe();
-      clearRedirectTimer();
     };
-  }, [user, isSuperAdmin, loadingAuth, navigate]);
+  }, [user, isSuperAdmin, loadingAuth]);
 
   useEffect(() => {
     document.title = "فرصتي - لوحة تحكم";
@@ -135,30 +124,42 @@ export default function Admin() {
   }
 
   const [loginLoading, setLoginLoading] = useState(false);
+  const [useManual, setUseManual] = useState(false);
+  const [manualEmail, setManualEmail] = useState('');
+  const [manualPassword, setManualPassword] = useState('');
 
-  const login = async (method: 'popup' | 'redirect' = 'popup') => {
+  const login = async (method: 'popup' | 'redirect' | 'email' = 'popup') => {
     if (loginLoading) return;
     setLoginLoading(true);
     clearRedirectTimer();
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ 
-        prompt: 'select_account'
-      });
-      
-      if (method === 'popup') {
-        await signInWithPopup(auth, provider);
+      if (method === 'email') {
+        if (!manualEmail || !manualPassword) {
+          alert("يرجى إدخال البريد وكلمة المرور");
+          setLoginLoading(false);
+          return;
+        }
+        await signInWithEmailAndPassword(auth, manualEmail, manualPassword);
       } else {
-        await signInWithRedirect(auth, provider);
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ 
+          prompt: 'select_account'
+        });
+        
+        if (method === 'popup') {
+          await signInWithPopup(auth, provider);
+        } else {
+          await signInWithRedirect(auth, provider);
+        }
       }
     } catch (error: any) {
       console.error("Login failure:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         // No action needed
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // No action needed
+      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        alert("البريد أو كلمة المرور غير صحيحة. يرجى التأكد من التسجيل مسبقاً.");
       } else {
-        alert("فشل تسجيل الدخول. تأكد من إعداد النطاقات المصرح بها في Firebase أو استخدم الطريقة البديلة.");
+        alert("فشل تسجيل الدخول. يمكنك تجربة 'الطريقة البديلة' أو الدخول اليدوي.");
       }
     } finally {
       setLoginLoading(false);
@@ -182,23 +183,80 @@ export default function Admin() {
           </div>
           <h1 className="text-xl md:text-2xl font-bold mb-4">لوحة تحكم الإدارة</h1>
           <p className="text-sm md:text-base text-gray-500 mb-8 leading-relaxed">يرجى تسجيل الدخول باستخدام حساب المشرف للوصول إلى أدوات الإدارة.</p>
-          <div className="space-y-3">
-            <button 
-              disabled={loginLoading}
-              onClick={() => login('popup')} 
-              className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
-              تسجيل الدخول (نافذة منبثقة)
-            </button>
-            <button 
-              disabled={loginLoading}
-              onClick={() => login('redirect')} 
-              className="w-full bg-gray-50 text-gray-700 flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all active:scale-[0.98] disabled:opacity-50 border border-gray-100"
-            >
-              <ShieldCheck size={20} className="text-gray-400" />
-              تسجيل الدخول (طريقة بديلة)
-            </button>
+          
+          <div className="space-y-4">
+            {!useManual ? (
+              <>
+                <button 
+                  disabled={loginLoading}
+                  onClick={() => login('popup')} 
+                  className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
+                  تسجيل الدخول (Google)
+                </button>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    disabled={loginLoading}
+                    onClick={() => login('redirect')} 
+                    className="w-full bg-gray-50 text-gray-500 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all text-sm border border-gray-100"
+                  >
+                    طريقة بديلة (Redirect)
+                  </button>
+                  <button 
+                    onClick={() => setUseManual(true)} 
+                    className="w-full text-brand-yellow font-bold text-sm hover:underline py-2"
+                  >
+                    أو الدخول اليدوي (بريد وكلمة مرور)
+                  </button>
+                </div>
+              </>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); login('email'); }} className="space-y-4 text-right">
+                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100 mb-4">
+                  <p className="text-[10px] text-yellow-700 leading-relaxed font-medium">
+                    * تأكد من تفعيل "Email/Password" في Firebase وإضافة المستخدم يدوياً هناك ليعمل هذا الخيار.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 mr-1">البريد الإلكتروني</label>
+                  <input 
+                    type="email" 
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder="example@gmail.com"
+                    className="w-full px-5 py-3 rounded-xl border border-gray-100 focus:border-brand-yellow outline-none dir-ltr text-left font-medium"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 mr-1">كلمة المرور</label>
+                  <input 
+                    type="password" 
+                    value={manualPassword}
+                    onChange={(e) => setManualPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-5 py-3 rounded-xl border border-gray-100 focus:border-brand-yellow outline-none dir-ltr text-left font-medium"
+                    required
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full bg-brand-black text-white py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-3"
+                >
+                  {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
+                  دخول الآن
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setUseManual(false)} 
+                  className="w-full text-gray-400 font-bold text-sm hover:text-gray-600"
+                >
+                  إلغاء والعودة لخيار جوجل
+                </button>
+              </form>
+            )}
           </div>
         </motion.div>
       </div>
@@ -207,16 +265,26 @@ export default function Admin() {
 
   if (!isUserAdmin) {
     return (
-      <div className="p-10 md:p-20 text-center space-y-4">
-        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
-          <X size={32} />
-        </div>
-        <h1 className="text-xl md:text-2xl font-bold text-red-500">عذراً، لا تملك صلاحية الوصول</h1>
-        <p className="text-gray-500 max-w-sm mx-auto">هذه الصفحة مخصصة للمدراء المعتمدين فقط. سيتم توجيهك للرئيسية تلقائياً...</p>
-        <div className="pt-4 flex flex-col md:flex-row items-center justify-center gap-3">
-           <button onClick={() => navigate('/')} className="w-full md:w-auto bg-brand-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all">العودة للرئيسية</button>
-           <button onClick={logout} className="w-full md:w-auto bg-gray-100 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all">تسجيل الخروج</button>
-        </div>
+      <div className="min-h-[80vh] flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gray-100 text-center max-w-lg w-full">
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <X size={40} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">الدخول مرفوض</h1>
+          <p className="text-gray-500 mb-8 leading-relaxed">
+            الحساب الحالي (<span className="font-bold text-brand-black">{user.email}</span>) لا يملك صلاحيات الوصول للوحة التحكم. 
+            يرجى التأكد من أنك تستخدم البريد الصحيح أو تواصل مع المالك.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button onClick={logout} className="w-full bg-brand-black text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+              <LogOut size={20} />
+              تسجيل الخروج
+            </button>
+            <button onClick={() => navigate('/')} className="w-full bg-gray-100 text-gray-700 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-all">
+              العودة للرئيسية
+            </button>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -311,8 +379,49 @@ export default function Admin() {
              </div>
           </div>
         ) : activeTab === 'admins' ? (
-          <div className="overflow-x-auto">
-             <table className="w-full text-right hidden md:table">
+          <div className="flex flex-col">
+            {isSuperAdmin && (
+              <div className="p-6 border-b border-gray-50 bg-gray-50/30">
+                <div className="max-w-2xl">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Plus size={16} className="text-brand-yellow" />
+                    إضافة مشرف جديد بشكل سريع
+                  </h3>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.target as HTMLFormElement;
+                    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+                    if (!email) return;
+                    try {
+                      await addDoc(collection(db, 'admins'), {
+                        email,
+                        name: email.split('@')[0],
+                        role: 'employee',
+                        addedAt: serverTimestamp()
+                      });
+                      form.reset();
+                      fetchData();
+                    } catch (err) {
+                      handleFirestoreError(err, OperationType.CREATE, 'admins');
+                    }
+                  }} className="flex flex-col md:flex-row gap-3">
+                    <input 
+                      name="email"
+                      type="email" 
+                      required 
+                      placeholder="أدخل بريد جوجل (Google Email)" 
+                      className="flex-1 px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow outline-none font-medium text-sm"
+                    />
+                    <button type="submit" className="bg-brand-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all text-sm whitespace-nowrap">
+                      إضافة الآن
+                    </button>
+                  </form>
+                  <p className="mt-2 text-[10px] text-gray-400 font-medium">* سيتم منح البريد المضاف صلاحية "موظف" تلقائياً.</p>
+                </div>
+              </div>
+            )}
+            <div className="overflow-x-auto">
+               <table className="w-full text-right hidden md:table">
               <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4 font-bold">المشرف</th>
@@ -354,8 +463,9 @@ export default function Admin() {
                   </div>
                 ))}
              </div>
-          </div>
-        ) : (
+           </div>
+         </div>
+       ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right hidden md:table">
               <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
