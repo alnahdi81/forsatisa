@@ -41,6 +41,7 @@ function Navbar() {
             <Link to="/category/remote" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
             <Link to="/category/university" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>الجامعات</Link>
             <Link to="/category/training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات</Link>
+            <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-brand-black bg-brand-yellow px-3 py-1.5 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">إنشاء سيرة ذاتية</a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -68,6 +69,7 @@ function Navbar() {
             <Link onClick={() => setIsOpen(false)} to="/category/university" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">مواعيد الجامعات</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">دورات تدريبية</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/employment_training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">تدريب منتهي بالتوظيف</Link>
+            <a onClick={() => setIsOpen(false)} href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="block text-sm font-bold p-3 bg-brand-yellow text-brand-black rounded-xl border border-brand-yellow/20 text-center">إنشاء سيرة ذاتية</a>
             <hr className="border-gray-50 my-2" />
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 font-bold p-2">
               <Link onClick={() => setIsOpen(false)} to="/about" className="p-2">من نحن</Link>
@@ -132,6 +134,7 @@ function Footer() {
             <li><Link to="/about" className="hover:text-brand-yellow">من نحن</Link></li>
             <li><Link to="/contact" className="hover:text-brand-yellow">اتصل بنا</Link></li>
             <li><Link to="/faq" className="hover:text-brand-yellow">الأسئلة الشائعة</Link></li>
+            <li><a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-brand-yellow font-bold hover:underline">إنشاء سيرة ذاتية</a></li>
           </ul>
         </div>
         <div>
