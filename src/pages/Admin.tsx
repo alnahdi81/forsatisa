@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
@@ -8,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function Admin() {
   const [user, loadingAuth] = useAuthState(auth);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'jobs' | 'ads' | 'subs' | 'admins'>('jobs');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [ads, setAds] = useState<Ad[]>([]);
@@ -17,26 +19,43 @@ export default function Admin() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   const SUPER_ADMIN_EMAIL = 'noamksa8@gmail.com';
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
     async function checkAdmin() {
-      if (!user) return;
-      if (isSuperAdmin) {
-        setIsUserAdmin(true);
+      if (!user) {
+        if (!loadingAuth) setCheckingAdmin(false);
         return;
       }
+      
+      if (isSuperAdmin) {
+        setIsUserAdmin(true);
+        setCheckingAdmin(false);
+        return;
+      }
+
       try {
         const adminDoc = await getDocs(query(collection(db, 'admins'), where('email', '==', user.email)));
-        setIsUserAdmin(!adminDoc.empty);
+        const isAdmin = !adminDoc.empty;
+        setIsUserAdmin(isAdmin);
+        
+        // إذا لم يكن مديراً، يتم تحويله للرئيسية بعد ثانية واحدة
+        if (!isAdmin) {
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        }
       } catch (e) {
         setIsUserAdmin(false);
+        navigate('/');
       }
+      setCheckingAdmin(false);
     }
     checkAdmin();
-  }, [user, isSuperAdmin]);
+  }, [user, isSuperAdmin, loadingAuth, navigate]);
 
   useEffect(() => {
     document.title = "فرصتي - لوحة تحكم";
@@ -74,7 +93,12 @@ export default function Admin() {
   const login = () => signInWithPopup(auth, googleProvider);
   const logout = () => signOut(auth);
 
-  if (loadingAuth) return <div className="p-20 text-center">جاري التحقق...</div>;
+  if (loadingAuth || checkingAdmin) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
+      <div className="text-gray-400 font-bold">جاري التحقق من الصلاحيات...</div>
+    </div>
+  );
 
   if (!user) {
     return (
