@@ -114,9 +114,9 @@ export const getStoredJobs = async (): Promise<Job[]> => {
 export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string> => {
   console.log('Firebase: addJob called with data:', job);
   
-  // Timeout for Firestore operation
+  // Longer timeout for Firestore operation (30s) to avoid premature failures
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 5000)
+    setTimeout(() => reject(new Error('انتهت مهلة الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.')), 30000)
   );
 
   try {
@@ -143,9 +143,9 @@ export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string
 export const updateJob = async (id: string, job: Partial<Job>) => {
   console.log('Firebase: updateJob called for ID:', id, 'with data:', job);
   
-  // Timeout for Firestore operation
+  // Longer timeout for Firestore operation (30s)
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 5000)
+    setTimeout(() => reject(new Error('انتهت مهلة الاتصال بالخادم.')), 30000)
   );
 
   try {
@@ -187,7 +187,7 @@ export const getStoredAds = async (): Promise<Ad[]> => {
 
 export const saveAd = async (ad: Omit<Ad, 'id'>, id?: string) => {
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً.')), 5000)
+    setTimeout(() => reject(new Error('انتهت مهلة الاتصال.')), 30000)
   );
   try {
     const adsRef = collection(db, 'ads');

@@ -161,14 +161,14 @@ export default function Admin() {
     
     console.log('Admin: Starting submission flow...');
     
-    // Safety timeout for the entire submission process UI-side
+    // Safety timeout for the entire submission process UI-side (35s)
     const submissionTimeout = setTimeout(() => {
       if (isSubmittingRef.current) {
-        console.warn('Admin: UI timeout triggered (15s)');
+        console.warn('Admin: UI timeout triggered (35s)');
         setIsSubmitting(false);
-        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً جداً. يرجى محاولة تحديث الصفحة والتحقق من قائمة الوظائف.');
+        alert('يبدو أن العملية تستغرق وقتاً طويلاً جداً. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً.');
       }
-    }, 15000);
+    }, 35000);
 
     try {
       console.log('Admin: Preparing data...');

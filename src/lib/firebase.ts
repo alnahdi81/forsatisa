@@ -5,7 +5,7 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with experimental settings for better reliability
+// Initialize Firestore with settings optimized for reliable connectivity in various environments
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
