@@ -235,6 +235,12 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button 
+              onClick={handleClearAll}
+              className="bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-xs font-black border border-red-500/20 hover:bg-red-500 hover:text-white transition-all hidden md:block"
+            >
+              إعادة ضبط المصنع
+            </button>
             <Link 
               to="/"
               className="bg-white/10 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/20 transition-all border border-white/5"
@@ -462,23 +468,6 @@ export default function Admin() {
             </div>
 
             {/* List View */}
-            <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl mb-8 flex flex-col md:flex-row items-center gap-6">
-              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
-                <AlertTriangle size={24} />
-              </div>
-              <div className="flex-1 text-center md:text-right">
-                <h4 className="font-black text-amber-900 mb-1">تنبيه هام حول تخزين البيانات</h4>
-                <p className="text-sm text-amber-800 font-medium leading-relaxed">البيانات التي تضيفها هنا تُحفظ داخل **متصفحك الحالي فقط**. لكي تظهر هذه الوظائف للجميع في رابط Vercel، يجب عليك نسخ الكود وطلبه مني لإضافته بشكل دائم، أو استخدام قاعدة بيانات سحابية (Firebase).</p>
-              </div>
-              <button 
-                onClick={handleCopyData}
-                className="bg-white border border-amber-200 text-amber-900 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-amber-100 transition-all shadow-sm shrink-0"
-              >
-                {copying ? <CheckCircle size={18} className="text-green-600" /> : <Copy size={18} />}
-                {copying ? 'تم النسخ!' : 'نسخ بيانات الوظائف'}
-              </button>
-            </div>
-
             <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-right border-collapse">
