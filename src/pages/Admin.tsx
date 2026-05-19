@@ -55,30 +55,12 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    let timedOut = false;
-    
-    // Safety timeout to prevent infinite spinning
-    const timeout = setTimeout(() => {
-      timedOut = true;
-      setIsLoading(false);
-    }, 4000);
+    if (!isLoggedIn) return;
 
     const unsubJobs = subscribeToJobs((data) => {
       setJobs(data);
-      if (!timedOut) {
-        setIsLoading(false);
-        clearTimeout(timeout);
-      }
     }, (err) => {
       console.error('Jobs subscription error:', err);
-      setIsLoading(false);
-      clearTimeout(timeout);
     });
 
     const unsubAds = subscribeToAds((data) => {
@@ -90,7 +72,6 @@ export default function Admin() {
     return () => {
       unsubJobs();
       unsubAds();
-      clearTimeout(timeout);
     };
   }, [isLoggedIn]);
 
@@ -268,20 +249,7 @@ export default function Admin() {
         </div>
       </nav>
 
-      {/* Stats and Content Area with Loading Indicator */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-[60] flex flex-col items-center justify-center pointer-events-none">
-          <div className="w-14 h-14 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-brand-black font-black text-sm animate-pulse">جاري تحميل البيانات...</p>
-          <button 
-            onClick={() => setIsLoading(false)}
-            className="mt-8 px-6 py-2 bg-white text-gray-400 text-xs font-bold rounded-xl border border-gray-100 pointer-events-auto hover:text-brand-black transition-all"
-          >
-            تخطي الانتظار
-          </button>
-        </div>
-      )}
-
+      {/* Stats and Content Area */}
       <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit mb-8">
            <button 
@@ -545,9 +513,12 @@ export default function Admin() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="px-8 py-20 text-center text-gray-400 font-bold">
-                          <Briefcase className="mx-auto mb-4 opacity-20" size={48} />
-                          لا يوجد وظائف مضافة حالياً
+                        <td colSpan={4} className="px-8 py-20 text-center">
+                          <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Bell className="text-amber-500" size={32} />
+                          </div>
+                          <div className="font-black text-brand-black text-xl mb-2">لا يوجد وظائف مضافة حالياً</div>
+                          <p className="text-gray-400 font-bold text-sm">ابدأ بإضافة وظائف جديدة عبر الزر في الأعلى</p>
                         </td>
                       </tr>
                     )}

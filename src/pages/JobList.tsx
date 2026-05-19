@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Job, JobCategory } from '../types';
-import { getStoredJobs } from '../lib/dataService';
+import { getStoredJobs, subscribeToJobs } from '../lib/dataService';
 import JobCard from '../components/JobCard';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function JobList({ category }: { category?: string }) {
@@ -14,18 +14,17 @@ export default function JobList({ category }: { category?: string }) {
     const title = category ? `فرصتي - ${categoryLabels[category]}` : "فرصتي - جميع الوظائف";
     document.title = title;
     
-    const loadJobs = async () => {
-      setLoading(true);
-      const allJobs = await getStoredJobs();
+    setLoading(true);
+    const unsub = subscribeToJobs((allJobs) => {
       if (category) {
         setJobs(allJobs.filter(j => j.category === category));
       } else {
         setJobs(allJobs);
       }
       setLoading(false);
-    };
+    });
 
-    loadJobs();
+    return () => unsub();
   }, [category]);
 
   const categoryLabels: Record<string, string> = {
@@ -68,37 +67,34 @@ export default function JobList({ category }: { category?: string }) {
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-2xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredJobs.length > 0 ? (
-            filteredJobs.map(job => <JobCard key={job.id} job={job} />)
-          ) : (
-            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100">
-              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search className="text-amber-500" size={40} />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {search ? "لا توجد نتائج لهذا البحث" : "لا يوجد وظائف حالياً"}
-              </h3>
-              <p className="text-gray-500 max-w-sm mx-auto">
-                {search ? "حاول البحث بكلمات مختلفة أو تصفح الأقسام الأخرى." : "سيتم إضافة وظائف جديدة في هذا القسم قريباً، تابعه باستمرار!"}
-              </p>
-              {search && (
-                <button 
-                  onClick={() => setSearch('')}
-                  className="mt-6 text-amber-600 font-bold hover:underline"
-                >
-                  مسح البحث
-                </button>
-              )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+        ) : (
+          <div className="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100 shadow-sm">
+            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              {search ? <Search className="text-amber-500" size={40} /> : <Bell className="text-amber-500 animate-bounce" size={40} />}
             </div>
-          )}
-        </div>
-      )}
+            
+            {!search && <div className="bg-amber-50 text-amber-700 px-6 py-2 rounded-full inline-block text-sm font-black mb-4">تنبيهات العملاء</div>}
+            
+            <h3 className="text-2xl font-black text-brand-black mb-3">
+              {search ? "لا توجد نتائج لهذا البحث" : "لا يوجد وظائف حالياً"}
+            </h3>
+            <p className="text-gray-500 max-w-sm mx-auto leading-relaxed font-bold">
+              {search ? "حاول البحث بكلمات مختلفة أو تصفح الأقسام الأخرى." : "سيتم إضافة وظائف جديدة في هذا القسم قريباً، تابعه باستمرار!"}
+            </p>
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="mt-6 text-amber-600 font-bold hover:underline"
+              >
+                مسح البحث
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

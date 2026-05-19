@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Job, Ad } from '../types';
-import { getStoredJobs, getStoredAds } from '../lib/dataService';
+import { getStoredJobs, getStoredAds, subscribeToJobs, subscribeToAds } from '../lib/dataService';
 import JobCard from '../components/JobCard';
-import { Search, Briefcase, Users, Building, ShieldCheck } from 'lucide-react';
+import { Search, Briefcase, Users, Building, ShieldCheck, Bell } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 
@@ -16,19 +16,20 @@ export default function Home() {
     const defaultTitle = "فرصتي .. نحو النجاح";
     document.title = defaultTitle;
     
-    // Load local jobs and ads
-    const loadData = async () => {
-      setLoading(true);
-      const [fetchedJobs, fetchedAds] = await Promise.all([
-        getStoredJobs(),
-        getStoredAds()
-      ]);
-      setJobs(fetchedJobs);
-      setAds(fetchedAds);
+    setLoading(true);
+    const unsubJobs = subscribeToJobs((data) => {
+      setJobs(data);
       setLoading(false);
-    };
+    });
+    
+    const unsubAds = subscribeToAds((data) => {
+      setAds(data);
+    });
 
-    loadData();
+    return () => {
+      unsubJobs();
+      unsubAds();
+    };
   }, []);
 
   const stats = [
@@ -113,27 +114,22 @@ export default function Home() {
           </Link>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-2xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredJobs.length > 0 ? (
-              filteredJobs.map(job => <JobCard key={job.id} job={job} />)
-            ) : (
-              <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100">
-                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Briefcase className="text-amber-500" size={40} />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">لا يوجد وظائف مضافة حالياً</h3>
-                <p className="text-gray-500 max-w-sm mx-auto">سيتم تحديث القائمة بأحدث الوظائف والفرص المتاحة في المملكة قريباً.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+          ) : (
+            <div className="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100 shadow-sm">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Bell className="text-amber-500 animate-bounce" size={40} />
               </div>
-            )}
-          </div>
-        )}
+              <div className="bg-amber-50 text-amber-700 px-6 py-2 rounded-full inline-block text-sm font-black mb-4">تنبيهات العملاء</div>
+              <h3 className="text-2xl font-black text-brand-black mb-3">لا يوجد وظائف مضافة حالياً</h3>
+              <p className="text-gray-500 max-w-sm mx-auto leading-relaxed font-bold">
+                سيتم تحديث القائمة بأحدث الوظائف والفرص المتاحة في المملكة قريباً.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
