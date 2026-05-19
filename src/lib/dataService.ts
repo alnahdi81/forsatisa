@@ -82,8 +82,8 @@ export const getStoredJobs = (): Job[] => {
     }
   } 
   
-  if (jobs.length === 0 && saved === null) {
-    // Initial load - use MOCK_JOBS
+  if (jobs.length === 0) {
+    // Initial load or if storage was cleared - use MOCK_JOBS
     jobs = MOCK_JOBS.map(j => {
       const d = new Date(j.createdAtDate || Date.now());
       return {
