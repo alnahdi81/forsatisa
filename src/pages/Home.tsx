@@ -94,6 +94,39 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Categories Grid */}
+      <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-30">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          {[
+            { label: 'عسكرية', path: 'military', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'حكومية', path: 'government', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'شركات', path: 'company', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'عن بعد', path: 'remote', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'جامعات', path: 'university', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'دورات', path: 'training', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'تدريب', path: 'employment_training', color: 'bg-white text-[#1a1a1a]' },
+          ].map((cat, i) => (
+            <motion.div
+              key={cat.path}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+            >
+              <Link 
+                to={`/category/${cat.path}`}
+                className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border border-gray-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 ${cat.color} group relative overflow-hidden`}
+              >
+                <div className="absolute top-0 right-0 w-12 h-12 bg-brand-yellow/5 rounded-full -mr-6 -mt-6"></div>
+                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                   <Briefcase size={24} className="text-brand-yellow" />
+                </div>
+                <span className="font-black text-xs">{cat.label}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Hero Ads */}
       {ads.filter(a => a.position === 'home_hero').length > 0 && (
         <section className="max-w-7xl mx-auto px-4 mt-8">

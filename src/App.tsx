@@ -44,19 +44,14 @@ function Navbar() {
           <div className="hidden lg:flex items-center gap-6">
             <Link to="/" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
             <Link to="/jobs" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/jobs' ? 'text-brand-yellow' : 'text-gray-600'}`}>جميع الوظائف</Link>
-            <Link to="/category/military" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>عسكرية</Link>
-            <Link to="/category/company" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>الشركات</Link>
+            <Link to="/category/military" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>وظائف عسكرية</Link>
             <Link to="/category/government" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/government' ? 'text-brand-yellow' : 'text-gray-600'}`}>حكومية</Link>
-            <div className="w-[1px] h-4 bg-gray-200 mx-2" />
-            <div className="flex items-center gap-3">
-              <a href="https://t.me/forsatisa" target="_blank" rel="noopener noreferrer" className="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all shadow-sm">
-                <Send size={16} />
-              </a>
-              <a href="https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-1.5 bg-green-50 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-sm">
-                <WhatsAppIcon size={16} />
-              </a>
-            </div>
-            <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-brand-black bg-brand-yellow px-3 py-1.5 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">إنشاء سيرة ذاتية</a>
+            <Link to="/category/company" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>شركات</Link>
+            <Link to="/category/university" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>مواعيد الجامعات</Link>
+            <Link to="/category/training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات تدريبية</Link>
+            <Link to="/category/remote" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
+            <div className="w-[1px] h-4 bg-gray-200 mx-1" />
+            <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[12px] font-bold text-brand-black bg-brand-yellow px-3 py-1.5 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">إنشاء سيرة ذاتية</a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -120,12 +115,6 @@ function Footer() {
           </Link>
           <p className="text-sm text-gray-400 leading-relaxed">بوابتك للوظائف العسكرية والحكومية والشركات في المملكة العربية السعودية.</p>
           <div className="flex gap-4">
-            <a href="https://t.me/forsatisa" target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">
-              <Send size={20} />
-            </a>
-            <a href="https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">
-              <WhatsAppIcon size={20} />
-            </a>
             <a href="https://instagram.com/forsatisa" target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-50 text-pink-500 rounded-xl hover:bg-pink-500 hover:text-white transition-all shadow-sm">
               <Instagram size={20} />
             </a>

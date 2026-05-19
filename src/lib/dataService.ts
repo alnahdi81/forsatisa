@@ -17,8 +17,9 @@ export const getStoredJobs = (): Job[] => {
     });
   }
   
-  // 2. Overwrite or add with stored jobs from all known keys
-  const keysToProcess = ['all_jobs', 'jobs', 'forsati-jobs', 'forsati_jobs'];
+  // 2. Overwrite or add with stored jobs from known keys
+  // Always use forsati_jobs as the primary source
+  const keysToProcess = ['jobs', 'all_jobs', 'forsati-jobs', 'forsati_jobs'];
   keysToProcess.forEach(key => {
     try {
       const saved = localStorage.getItem(key);
@@ -28,12 +29,18 @@ export const getStoredJobs = (): Job[] => {
           parsed.forEach((j: any) => {
             if (j && j.id) {
               // Reconstruct date
-              let dateVal: any = j.createdAtDate || j.createdAt;
+              let dateVal: any = j.createdAtDate || j.createdAt || j.createdAtManual;
               if (typeof dateVal === 'object' && dateVal?.seconds) {
                 dateVal = dateVal.seconds * 1000;
               }
-              const dateObj = new Date(dateVal || Date.now());
-              const finalDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+              
+              let finalDate: Date;
+              if (dateVal) {
+                const dateObj = new Date(dateVal);
+                finalDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+              } else {
+                finalDate = new Date();
+              }
               
               jobMap.set(j.id, {
                 ...j,
