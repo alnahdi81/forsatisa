@@ -8,7 +8,7 @@ import {
   query, 
   orderBy, 
   setDoc,
-  getDoc
+  onSnapshot
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -56,6 +56,36 @@ export const seedDatabaseIfEmpty = async () => {
     }
     console.log('Database seeded.');
   }
+};
+
+export const subscribeToJobs = (callback: (jobs: Job[]) => void) => {
+  const jobsRef = collection(db, 'jobs');
+  const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const jobs = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
+      return {
+        ...data,
+        id: doc.id,
+        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+      } as Job;
+    });
+    callback(jobs);
+  }, (error) => {
+    console.error('Error subscribing to jobs:', error);
+  });
+};
+
+export const subscribeToAds = (callback: (ads: Ad[]) => void) => {
+  const adsRef = collection(db, 'ads');
+  return onSnapshot(adsRef, (snapshot) => {
+    const ads = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
+    callback(ads);
+  }, (error) => {
+    console.error('Error subscribing to ads:', error);
+  });
 };
 
 export const getStoredJobs = async (): Promise<Job[]> => {

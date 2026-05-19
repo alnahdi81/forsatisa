@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Job, Ad } from '../types';
-import { getStoredJobs, getStoredAds, addJob, updateJob, deleteJob, saveAd, deleteAd } from '../lib/dataService';
+import { getStoredJobs, getStoredAds, addJob, updateJob, deleteJob, saveAd, deleteAd, subscribeToJobs, subscribeToAds } from '../lib/dataService';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -55,35 +55,24 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      const [fetchedJobs, fetchedAds] = await Promise.all([
-        getStoredJobs(),
-        getStoredAds()
-      ]);
-      setJobs(fetchedJobs);
-      setAds(fetchedAds);
+    setIsLoading(true);
+    const unsubJobs = subscribeToJobs((data) => {
+      setJobs(data);
       setIsLoading(false);
+    });
+    const unsubAds = subscribeToAds((data) => {
+      setAds(data);
+    });
+    return () => {
+      unsubJobs();
+      unsubAds();
     };
-    loadData();
   }, []);
-
-  const refreshData = async () => {
-    if (activeTab === 'jobs') {
-      const updated = await getStoredJobs();
-      setJobs(updated);
-    } else {
-      const updated = await getStoredAds();
-      setAds(updated);
-    }
-  };
 
   const handleAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     try {
       await saveAd(adFormData, editingId || undefined);
-      await refreshData();
       setAdFormData({ title: '', image: '', link: '', position: 'home_hero' });
       setEditingId(null);
       setShowForm(false);
@@ -91,24 +80,17 @@ export default function Admin() {
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDeleteAd = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
-      setIsLoading(true);
       try {
-        const { deleteAd } = await import('../lib/dataService');
         await deleteAd(id);
-        await refreshData();
         setSuccessMsg('تم حذف الإعلان بنجاح!');
         setTimeout(() => setSuccessMsg(''), 3000);
       } catch (error) {
         console.error(error);
-      } finally {
-        setIsLoading(false);
       }
     }
   };
@@ -137,7 +119,6 @@ export default function Admin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     try {
       if (editingId) {
         await updateJob(editingId, {
@@ -152,30 +133,22 @@ export default function Admin() {
           createdAtDate: new Date(formData.createdAtManual).toISOString()
         } as any);
       }
-      
-      await refreshData();
       handleReset();
       setSuccessMsg('تم حفظ الوظيفة بنجاح!');
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الوظيفة؟')) {
-      setIsLoading(true);
       try {
         await deleteJob(id);
-        await refreshData();
         setSuccessMsg('تم حذف الوظيفة بنجاح!');
         setTimeout(() => setSuccessMsg(''), 3000);
       } catch (error) {
         console.error(error);
-      } finally {
-        setIsLoading(false);
       }
     }
   };
