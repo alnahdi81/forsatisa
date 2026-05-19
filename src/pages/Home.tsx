@@ -124,12 +124,12 @@ export default function Home() {
             {filteredJobs.length > 0 ? (
               filteredJobs.map(job => <JobCard key={job.id} job={job} />)
             ) : (
-              <div className="col-span-full py-20 text-center space-y-4">
-                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
-                  <Search size={40} className="text-gray-200" />
+              <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100">
+                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Briefcase className="text-amber-500" size={40} />
                 </div>
-                <h3 className="text-xl font-bold">لا توجد وظائف تطابق بحثك</h3>
-                <p className="text-gray-500">حاول البحث بكلمات مختلفة أو تصفح الأقسام الأخرى.</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">لا يوجد وظائف مضافة حالياً</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">سيتم تحديث القائمة بأحدث الوظائف والفرص المتاحة في المملكة قريباً.</p>
               </div>
             )}
           </div>

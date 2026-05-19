@@ -74,9 +74,28 @@ export default function JobList({ category }: { category?: string }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredJobs.map(job => <JobCard key={job.id} job={job} />)}
-          {filteredJobs.length === 0 && (
-            <div className="col-span-full py-20 text-center text-gray-400">لا يوجد نتائج لهذا البحث</div>
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+          ) : (
+            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search className="text-amber-500" size={40} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                {search ? "لا توجد نتائج لهذا البحث" : "لا يوجد وظائف حالياً"}
+              </h3>
+              <p className="text-gray-500 max-w-sm mx-auto">
+                {search ? "حاول البحث بكلمات مختلفة أو تصفح الأقسام الأخرى." : "سيتم إضافة وظائف جديدة في هذا القسم قريباً، تابعه باستمرار!"}
+              </p>
+              {search && (
+                <button 
+                  onClick={() => setSearch('')}
+                  className="mt-6 text-amber-600 font-bold hover:underline"
+                >
+                  مسح البحث
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

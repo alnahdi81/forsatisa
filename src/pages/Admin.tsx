@@ -197,12 +197,6 @@ export default function Admin() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
-
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans" dir="rtl">
@@ -232,6 +226,12 @@ export default function Admin() {
       </div>
     );
   }
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] font-sans pb-20" dir="rtl">
@@ -490,50 +490,60 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {jobs.map(job => (
-                      <tr key={job.id} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                              {job.image ? <img src={job.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <Building2 size={20} className="text-gray-300" />}
+                    {jobs.length > 0 ? (
+                      jobs.map(job => (
+                        <tr key={job.id} className="hover:bg-gray-50/50 transition-colors group">
+                          {/* ... existing cells ... */}
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                                {job.image ? <img src={job.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <Building2 size={20} className="text-gray-300" />}
+                              </div>
+                              <div>
+                                <div className="font-black text-brand-black">{job.title}</div>
+                                <div className="text-xs text-gray-400 font-bold">{job.company}</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-black text-brand-black">{job.title}</div>
-                              <div className="text-xs text-gray-400 font-bold">{job.company}</div>
+                          </td>
+                          <td className="px-8 py-6">
+                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase ${
+                              job.status === 'active' ? 'bg-green-50 text-green-600' :
+                              job.status === 'expiring' ? 'bg-orange-50 text-orange-600' :
+                              job.status === 'soon' ? 'bg-blue-50 text-blue-600' :
+                              'bg-red-50 text-red-600'
+                            }`}>
+                              {job.status === 'active' ? 'نشط' : job.status === 'soon' ? 'قريباً' : job.status === 'expiring' ? 'ينتهي قريباً' : 'منتهي'}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6 text-gray-400 text-sm font-bold">
+                            {job.createdAt?.toDate ? job.createdAt.toDate().toLocaleDateString('ar-SA') : (job.createdAtManual || 'N/A')}
+                          </td>
+                          <td className="px-8 py-6 text-left">
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => handleEdit(job)}
+                                className="p-2.5 bg-gray-50 text-gray-500 hover:bg-brand-yellow/10 hover:text-brand-yellow rounded-xl transition-all"
+                              >
+                                <Plus size={18} className="rotate-45" />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(job.id)}
+                                className="p-2.5 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
+                              >
+                                <Trash2 size={18} />
+                              </button>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase ${
-                            job.status === 'active' ? 'bg-green-50 text-green-600' :
-                            job.status === 'expiring' ? 'bg-orange-50 text-orange-600' :
-                            job.status === 'soon' ? 'bg-blue-50 text-blue-600' :
-                            'bg-red-50 text-red-600'
-                          }`}>
-                            {job.status === 'active' ? 'نشط' : job.status === 'soon' ? 'قريباً' : job.status === 'expiring' ? 'ينتهي قريباً' : 'منتهي'}
-                          </span>
-                        </td>
-                        <td className="px-8 py-6 text-gray-400 text-sm font-bold">
-                          {job.createdAt?.toDate ? job.createdAt.toDate().toLocaleDateString('ar-SA') : 'N/A'}
-                        </td>
-                        <td className="px-8 py-6 text-left">
-                          <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => handleEdit(job)}
-                              className="p-2.5 bg-gray-50 text-gray-500 hover:bg-brand-yellow/10 hover:text-brand-yellow rounded-xl transition-all"
-                            >
-                              <Plus size={18} className="rotate-45" />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(job.id)}
-                              className="p-2.5 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-8 py-20 text-center text-gray-400 font-bold">
+                          <Briefcase className="mx-auto mb-4 opacity-20" size={48} />
+                          لا يوجد وظائف مضافة حالياً
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -541,37 +551,39 @@ export default function Admin() {
           </>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ads.map(ad => (
-              <div key={ad.id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group relative">
-                 <div className="aspect-[2/1] relative">
-                    <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
-                       <button 
-                         onClick={() => {
-                           setEditingId(ad.id);
-                           setAdFormData({ title: ad.title, image: ad.image, link: ad.link, position: ad.position });
-                           setShowForm(true);
-                           window.scrollTo({ top: 0, behavior: 'smooth' });
-                         }}
-                         className="p-3 bg-white rounded-xl text-brand-black hover:scale-110 transition-all"
-                       >
-                         <Plus className="rotate-45" size={20} />
-                       </button>
-                       <button 
-                         onClick={() => handleDeleteAd(ad.id)}
-                         className="p-3 bg-red-500 rounded-xl text-white hover:scale-110 transition-all"
-                       >
-                         <Trash2 size={20} />
-                       </button>
-                    </div>
-                 </div>
-                 <div className="p-5">
-                    <div className="text-[10px] font-black text-brand-yellow uppercase mb-1">{ad.position}</div>
-                    <h3 className="font-bold text-lg">{ad.title}</h3>
-                    <p className="text-xs text-gray-400 truncate mt-1">{ad.link}</p>
-                 </div>
-              </div>
-            ))}
+            {ads.length > 0 ? (
+              ads.map(ad => (
+                <div key={ad.id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group relative">
+                   <div className="aspect-[2/1] relative">
+                      <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
+                         <button 
+                           onClick={() => {
+                             setEditingId(ad.id);
+                             setAdFormData({ title: ad.title, image: ad.image, link: ad.link, position: ad.position });
+                             setShowForm(true);
+                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                           }}
+                           className="p-3 bg-white rounded-xl text-brand-black hover:scale-110 transition-all"
+                         >
+                           <Plus className="rotate-45" size={20} />
+                         </button>
+                         <button 
+                           onClick={() => handleDeleteAd(ad.id)}
+                           className="p-3 bg-red-500 rounded-xl text-white hover:scale-110 transition-all"
+                         >
+                           <Trash2 size={20} />
+                         </button>
+                      </div>
+                   </div>
+                   <div className="p-5">
+                      <div className="text-[10px] font-black text-brand-yellow uppercase mb-1">{ad.position}</div>
+                      <h3 className="font-bold text-lg">{ad.title}</h3>
+                      <p className="text-xs text-gray-400 truncate mt-1">{ad.link}</p>
+                   </div>
+                </div>
+              ))
+            ) : null}
             <button 
               onClick={() => { setEditingId(null); setShowForm(true); }}
               className="aspect-[2/1] rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-brand-yellow hover:bg-brand-yellow/5 transition-all"
