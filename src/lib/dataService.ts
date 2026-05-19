@@ -14,63 +14,27 @@ const MOCK_JOBS: Job[] = [
     createdAt: { toDate: () => new Date('2026-05-18') }
   },
   {
-    id: 'thamanya-1',
-    title: 'شركة ثمانية تعلن عن فتح باب التوظيف لعدة تخصصات إبداعية وتقنية',
-    company: 'شركة ثمانية',
-    category: 'company',
-    location: 'الرياض',
-    status: 'active',
-    description: 'تعلن شركة ثمانية للنشر والتوزيع عن رغبتها في استقطاب كفاءات متميزة للانضمام لفريقها في مجالات صناعة المحتوى، التصميم، والبرمجة.',
-    externalLink: 'https://example.com',
-    image: 'https://pbs.twimg.com/profile_images/1490244673621430275/0g_tW0M__400x400.jpg',
-    createdAt: { toDate: () => new Date('2026-05-17') }
-  },
-  {
     id: 'aramco-grad-1',
     title: 'برنامج الرواد للمتميزين (أرامكو السعودية) 2026 للابتعاث والتدريب',
     company: 'أرامكو السعودية',
     category: 'employment_training',
-    location: 'الظهران / الظهران',
+    location: 'الظهران',
     status: 'active',
-    description: 'تعلن أرامكو السعودية عن بدء التقديم في برنامج الرواد للمتميزين والذي يستهدف حديثي التخرج من الجامعات العالمية والمحلية في مختلف التخصصات الهندسية والتقنية.',
+    description: 'تعلن أرامكو السعودية عن بدء التقديم في برنامج الرواد للمتميزين والذي يستهدف حديثي التخرج من الجامعات العالمية والمحلية في مختلف التخصصات الهندسية.',
     externalLink: 'https://example.com',
     image: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/44/Saudi_Aramco_logo.svg/1200px-Saudi_Aramco_logo.svg.png',
     createdAt: { toDate: () => new Date('2026-05-19') }
   },
   {
-    id: 'tabby-1',
-    title: 'شركة تابي (Tabby) تعلن عن فرص وظيفية في مجال التقنية والعمليات',
-    company: 'شركة تابي',
-    category: 'company',
-    location: 'الرياض',
-    status: 'active',
-    description: 'تعلن تابي الرائدة في خدمات اشتر الآن وادفع لاحقاً عن توفر وظائف شاغرة في تخصصات هندسة البرمجيات وتحليل البيانات وخدمة العملاء.',
+    id: 'mod-2026',
+    title: 'وزارة الدفاع تعلن فتح باب القبول في الكليات العسكرية (ثانوية عامة)',
+    company: 'وزارة الدفاع',
+    category: 'military',
+    location: 'المملكة العربية السعودية',
+    status: 'soon',
+    description: 'قريباً.. اللجنة المركزية لقبول طلاب الكليات العسكرية بوزارة الدفاع تعلن عن فتح باب التقديم لخريجي الثانوية العامة لعام 1447هـ.',
     externalLink: 'https://example.com',
-    image: 'https://pbs.twimg.com/profile_images/1454743431670915072/XF7a7_o6_400x400.jpg',
-    createdAt: { toDate: () => new Date('2026-05-17') }
-  },
-  {
-    id: 'neom-1',
-    title: 'نيوم تعلن عن فتح التقديم في برنامج "نيوم للابتعاث" المنتهي بالتوظيف',
-    company: 'نيوم',
-    category: 'employment_training',
-    location: 'نيوم',
-    status: 'active',
-    description: 'تعلن شركة نيوم عن فتح باب التقديم في برنامج نيوم للابتعاث الداخلي والخارجي المنتهي بالتوظيف لخريجي الثانوية المتميزين.',
-    externalLink: 'https://example.com',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/NEOM_Logo.svg/1200px-NEOM_Logo.svg.png',
-    createdAt: { toDate: () => new Date('2026-05-19') }
-  },
-  {
-    id: 'gosi-1',
-    title: 'المؤسسة العامة للتأمينات الاجتماعية تعلن وظائف إدارية وقانونية وتقنية',
-    company: 'التأمينات الاجتماعية',
-    category: 'government',
-    location: 'الرياض',
-    status: 'active',
-    description: 'تعلن المؤسسة العامة للتأمينات الاجتماعية عن توفر عدد من الوظائف الشاغرة بمقر المؤسسة الرئيسي بالرياض للفئات التالية.',
-    externalLink: 'https://example.com',
-    image: 'https://upload.wikimedia.org/wikipedia/ar/thumb/a/a2/GOSI_Logo.svg/1200px-GOSI_Logo.svg.png',
+    image: 'https://upload.wikimedia.org/wikipedia/ar/5/52/%D8%B4%D8%B9%D8%A7%D8%B1_%D9%88%D8%B2%D8%A7%D8%B1%D8%A9_%D8%A7%D9%84%D8%AF%D9%81%D8%A7%D8%B9_%D8%A7%D9%84%D8%B3%D8%B1%D9%88%D8%AF%D9%8A%D8%A9.png',
     createdAt: { toDate: () => new Date('2026-05-19') }
   },
   {
@@ -83,6 +47,18 @@ const MOCK_JOBS: Job[] = [
     description: 'يعلن صندوق الاستثمارات العامة عن بدء التقديم في برنامج تطوير الخريجين بنسخته الثامنة لعام 2026 في كافة المسارات التخصصية.',
     externalLink: 'https://example.com',
     image: 'https://upload.wikimedia.org/wikipedia/ar/thumb/0/0e/Public_Investment_Fund_%28Saudi_Arabia%29_Logo.svg/1200px-Public_Investment_Fund_%28Saudi_Arabia%29_Logo.svg.png',
+    createdAt: { toDate: () => new Date('2026-05-19') }
+  },
+  {
+    id: 'neom-1',
+    title: 'نيوم تعلن عن فتح التقديم في برنامج "نيوم للابتعاث" المنتهي بالتوظيف',
+    company: 'نيوم',
+    category: 'employment_training',
+    location: 'نيوم',
+    status: 'active',
+    description: 'تعلن شركة نيوم عن فتح باب التقديم في برنامج نيوم للابتعاث الداخلي والخارجي المنتهي بالتوظيف لخريجي الثانوية المتميزين.',
+    externalLink: 'https://example.com',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/NEOM_Logo.svg/1200px-NEOM_Logo.svg.png',
     createdAt: { toDate: () => new Date('2026-05-19') }
   }
 ];
@@ -150,22 +126,7 @@ export const getStoredAds = (): Ad[] => {
   }
   
   // Default Ads if none stored
-  return [
-    {
-      id: 'ad-1',
-      title: 'إعلان تجريبي 1',
-      image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=1200',
-      link: 'https://google.com',
-      position: 'home_hero'
-    },
-    {
-      id: 'ad-2',
-      title: 'إعلان تجريبي 2',
-      image: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&q=80&w=1200',
-      link: 'https://google.com',
-      position: 'sidebar'
-    }
-  ];
+  return [];
 };
 
 export const saveStoredAds = (ads: Ad[]) => {

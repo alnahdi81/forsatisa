@@ -115,38 +115,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Categories Grid */}
-      <section className="max-w-7xl mx-auto px-4 mt-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          {[
-            { label: 'عسكرية', path: 'military', color: 'bg-red-50 text-red-600' },
-            { label: 'حكومية', path: 'government', color: 'bg-blue-50 text-blue-600' },
-            { label: 'شركات', path: 'company', color: 'bg-orange-50 text-orange-600' },
-            { label: 'عن بعد', path: 'remote', color: 'bg-green-50 text-green-600' },
-            { label: 'جامعات', path: 'university', color: 'bg-purple-50 text-purple-600' },
-            { label: 'دورات', path: 'training', color: 'bg-cyan-50 text-cyan-600' },
-            { label: 'تدريب', path: 'employment_training', color: 'bg-pink-50 text-pink-600' },
-          ].map((cat, i) => (
-            <motion.div
-              key={cat.path}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.05 }}
-            >
-              <Link 
-                to={`/category/${cat.path}`}
-                className={`flex flex-col items-center justify-center p-6 rounded-3xl border border-gray-50 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 ${cat.color} group`}
-              >
-                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                   <Briefcase size={24} />
-                </div>
-                <span className="font-black text-sm">{cat.label}</span>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
       {/* Stats */}
       <section className="max-w-7xl mx-auto px-4 mt-8 relative z-20">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

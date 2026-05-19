@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Job, Ad } from '../types';
 import { getStoredJobs, getStoredAds, saveStoredAds } from '../lib/dataService';
@@ -15,6 +15,15 @@ export default function Admin() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
+
+  const [copying, setCopying] = useState(false);
+
+  const handleCopyData = () => {
+    const data = JSON.stringify(jobs, null, 2);
+    navigator.clipboard.writeText(data);
+    setCopying(true);
+    setTimeout(() => setCopying(false), 2000);
+  };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -443,6 +452,23 @@ export default function Admin() {
             </div>
 
             {/* List View */}
+            <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl mb-8 flex flex-col md:flex-row items-center gap-6">
+              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div className="flex-1 text-center md:text-right">
+                <h4 className="font-black text-amber-900 mb-1">تنبيه هام حول تخزين البيانات</h4>
+                <p className="text-sm text-amber-800 font-medium leading-relaxed">البيانات التي تضيفها هنا تُحفظ داخل **متصفحك الحالي فقط**. لكي تظهر هذه الوظائف للجميع في رابط Vercel، يجب عليك نسخ الكود وطلبه مني لإضافته بشكل دائم، أو استخدام قاعدة بيانات سحابية (Firebase).</p>
+              </div>
+              <button 
+                onClick={handleCopyData}
+                className="bg-white border border-amber-200 text-amber-900 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-amber-100 transition-all shadow-sm shrink-0"
+              >
+                {copying ? <CheckCircle size={18} className="text-green-600" /> : <Copy size={18} />}
+                {copying ? 'تم النسخ!' : 'نسخ بيانات الوظائف'}
+              </button>
+            </div>
+
             <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-right border-collapse">
