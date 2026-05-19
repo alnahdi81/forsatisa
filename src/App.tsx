@@ -52,6 +52,9 @@ function Navbar() {
             <Link to="/category/employment_training" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/employment_training' ? 'text-brand-yellow' : 'text-gray-600'}`}>تدريب منتهي بالتوظيف</Link>
             <Link to="/category/remote" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
             <div className="w-[1px] h-4 bg-gray-200" />
+            <a href="https://www.whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">
+              <WhatsAppIcon size={18} />
+            </a>
             <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[11px] xl:text-[12px] font-bold text-brand-black bg-brand-yellow px-3 py-2 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">سيرة ذاتية</a>
           </div>
 
@@ -80,6 +83,16 @@ function Navbar() {
             <Link onClick={() => setIsOpen(false)} to="/category/training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">دورات تدريبية</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/remote" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">عن بعد</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/employment_training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">تدريب منتهي بالتوظيف</Link>
+            <div className="flex gap-2 p-2">
+              <a onClick={() => setIsOpen(false)} href="https://www.whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100 font-bold">
+                <WhatsAppIcon size={20} />
+                واتساب
+              </a>
+              <a onClick={() => setIsOpen(false)} href="https://instagram.com/forsatisa" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 p-4 bg-pink-50 text-pink-600 rounded-2xl border border-pink-100 font-bold">
+                <Instagram size={20} />
+                إنستقرام
+              </a>
+            </div>
             <a onClick={() => setIsOpen(false)} href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="block text-sm font-extrabold p-4 bg-brand-yellow text-brand-black rounded-2xl border border-brand-yellow/20 text-center shadow-lg shadow-brand-yellow/10">إنشاء سيرة ذاتية</a>
             <hr className="border-gray-50 my-2" />
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 font-bold p-2">
@@ -121,6 +134,9 @@ function Footer() {
             </a>
             <a href="https://tiktok.com/@forsatisa" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 text-black rounded-xl hover:bg-black hover:text-white transition-all shadow-sm">
               <TikTokIcon size={20} />
+            </a>
+            <a href="https://www.whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">
+              <WhatsAppIcon size={20} />
             </a>
           </div>
         </div>
