@@ -6,39 +6,45 @@ export const getStoredJobs = (): Job[] => {
   const jobMap = new Map<string, Job>();
   
   // 1. Add mock jobs first as base
-  MOCK_JOBS.slice().forEach(j => {
-    jobMap.set(j.id, {
-      ...j,
-      createdAt: { toDate: () => (j.createdAt?.toDate ? j.createdAt.toDate() : new Date()) }
+  if (Array.isArray(MOCK_JOBS)) {
+    MOCK_JOBS.slice().forEach(j => {
+      if (j && j.id) {
+        jobMap.set(j.id, {
+          ...j,
+          createdAt: { toDate: () => (j.createdAt?.toDate ? j.createdAt.toDate() : new Date()) }
+        });
+      }
     });
-  });
+  }
   
   // 2. Overwrite or add with stored jobs from all known keys
   const keysToProcess = ['all_jobs', 'jobs', 'forsati-jobs', 'forsati_jobs'];
   keysToProcess.forEach(key => {
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           parsed.forEach((j: any) => {
-            // Reconstruct date
-            let dateVal: any = j.createdAtDate || j.createdAt;
-            if (typeof dateVal === 'object' && dateVal?.seconds) {
-              dateVal = dateVal.seconds * 1000;
+            if (j && j.id) {
+              // Reconstruct date
+              let dateVal: any = j.createdAtDate || j.createdAt;
+              if (typeof dateVal === 'object' && dateVal?.seconds) {
+                dateVal = dateVal.seconds * 1000;
+              }
+              const dateObj = new Date(dateVal || Date.now());
+              const finalDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+              
+              jobMap.set(j.id, {
+                ...j,
+                createdAt: { toDate: () => finalDate }
+              });
             }
-            const dateObj = new Date(dateVal || Date.now());
-            const finalDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
-            
-            jobMap.set(j.id, {
-              ...j,
-              createdAt: { toDate: () => finalDate }
-            });
           });
         }
-      } catch (e) {
-        console.error(`Error parsing jobs from ${key}`, e);
       }
+    } catch (e) {
+      console.error(`Error parsing jobs from ${key}`, e);
     }
   });
 

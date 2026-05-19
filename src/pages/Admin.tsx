@@ -190,32 +190,27 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-brand-black flex items-center justify-center p-4 font-sans overflow-hidden relative" dir="rtl">
-        {/* Abstract shapes for background */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-yellow/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-yellow/5 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
-
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans" dir="rtl">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          className="bg-white p-10 rounded-[3rem] shadow-2xl border border-white/10 w-full max-w-md text-center relative z-10"
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 w-full max-w-md text-center"
         >
-          <div className="w-24 h-24 bg-brand-yellow rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-brand-yellow/30 rotate-3">
-            <ShieldCheck size={48} className="text-brand-black -rotate-3" />
+          <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-yellow/20">
+            <ShieldCheck size={40} className="text-brand-black" />
           </div>
-          <h1 className="text-3xl font-black mb-3 tracking-tight text-brand-black">لوحة التحكم</h1>
-          <p className="text-gray-400 mb-10 font-bold">بوابة الإدارة المركزية لمنصة فرصتي</p>
+          <h1 className="text-2xl font-black mb-2 text-brand-black">لوحة التحكم</h1>
+          <p className="text-gray-400 mb-8 font-medium">سجل دخولك لإدارة الوظائف والإعلانات</p>
           
           <div className="space-y-4">
             <button 
               onClick={handleLogin}
-              className="w-full bg-brand-black text-white py-6 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-3"
+              className="w-full bg-brand-black text-white py-5 rounded-2xl font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
             >
-              دخول سريع 
-              <ArrowRight size={20} className="rotate-180" />
+              دخول سريع للنظام
             </button>
             <button onClick={() => navigate('/')} className="w-full py-4 text-gray-400 font-bold hover:text-brand-black transition-colors">
-              العودة للمعاينة العامة
+              العودة للمعاينة
             </button>
           </div>
         </motion.div>

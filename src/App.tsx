@@ -193,30 +193,21 @@ export default function App() {
           {/* Admin Routes - No Header/Footer */}
           <Route path="/admin/*" element={<Admin />} />
 
-          {/* Public Routes - With Header/Footer */}
-          <Route
-            path="*"
-            element={
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/jobs" element={<JobList />} />
-                    <Route path="/category/:category" element={<CategoryWrapper />} />
-                    <Route path="/job/:id" element={<JobDetail />} />
-                    <Route path="/about" element={<StaticPage title="من نحن" />} />
-                    <Route path="/contact" element={<StaticPage title="اتصل بنا" />} />
-                    <Route path="/privacy" element={<StaticPage title="سياسة الخصوصية" />} />
-                    <Route path="/terms" element={<StaticPage title="الشروط والأحكام" />} />
-                    <Route path="/faq" element={<StaticPage title="الأسئلة الشائعة" />} />
-                    <Route path="/privacy-settings" element={<StaticPage title="إدارة إعدادات الخصوصية" />} />
-                  </Routes>
-                </main>
-                <Footer />
-              </div>
-            }
-          />
+          {/* Public Routes - With Header/Footer wrapped individually or via layout */}
+          <Route path="/" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><Home /></main><Footer /></>} />
+          <Route path="/jobs" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><JobList /></main><Footer /></>} />
+          <Route path="/category/:category" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><CategoryWrapper /></main><Footer /></>} />
+          <Route path="/job/:id" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><JobDetail /></main><Footer /></>} />
+          
+          <Route path="/about" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="من نحن" /></main><Footer /></>} />
+          <Route path="/contact" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="اتصل بنا" /></main><Footer /></>} />
+          <Route path="/privacy" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="سياسة الخصوصية" /></main><Footer /></>} />
+          <Route path="/terms" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="الشروط والأحكام" /></main><Footer /></>} />
+          <Route path="/faq" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="الأسئلة الشائعة" /></main><Footer /></>} />
+          <Route path="/privacy-settings" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="إدارة إعدادات الخصوصية" /></main><Footer /></>} />
+          
+          {/* Fallback */}
+          <Route path="*" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><Home /></main><Footer /></>} />
         </Routes>
       </div>
     </Router>
