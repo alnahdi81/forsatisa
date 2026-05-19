@@ -235,12 +235,7 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button 
-              onClick={handleClearAll}
-              className="bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-xs font-black border border-red-500/20 hover:bg-red-500 hover:text-white transition-all hidden md:block"
-            >
-              إعادة ضبط المصنع
-            </button>
+
             <Link 
               to="/"
               className="bg-white/10 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/20 transition-all border border-white/5"
