@@ -5,12 +5,17 @@ import {
   addDoc, 
   deleteDoc, 
   doc, 
+  getDoc,
   query, 
   orderBy, 
   setDoc,
   onSnapshot
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+// Simple in-memory cache
+let jobsCache: Job[] = [];
+let adsCache: Ad[] = [];
 
 const MOCK_JOBS: Job[] = [
   {
@@ -72,6 +77,7 @@ export const subscribeToJobs = (callback: (jobs: Job[]) => void, onError?: (erro
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
     });
+    jobsCache = jobs; // Update cache
     callback(jobs);
   }, (error) => {
     console.error('Error subscribing to jobs:', error);
@@ -83,6 +89,7 @@ export const subscribeToAds = (callback: (ads: Ad[]) => void, onError?: (error: 
   const adsRef = collection(db, 'ads');
   return onSnapshot(adsRef, (snapshot) => {
     const ads = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
+    adsCache = ads; // Update cache
     callback(ads);
   }, (error) => {
     console.error('Error subscribing to ads:', error);
@@ -91,12 +98,15 @@ export const subscribeToAds = (callback: (ads: Ad[]) => void, onError?: (error: 
 };
 
 export const getStoredJobs = async (): Promise<Job[]> => {
+  // Return cache if available
+  if (jobsCache.length > 0) return jobsCache;
+
   try {
     const jobsRef = collection(db, 'jobs');
     const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(doc => {
+    const jobs = snapshot.docs.map(doc => {
       const data = doc.data();
       const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
       return {
@@ -105,10 +115,37 @@ export const getStoredJobs = async (): Promise<Job[]> => {
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
     });
+    jobsCache = jobs;
+    return jobs;
   } catch (error) {
     console.error('Error fetching jobs from Firestore:', error);
     return [];
   }
+};
+
+export const getJobById = async (id: string): Promise<Job | null> => {
+  // 1. Check cache first
+  const cached = jobsCache.find(j => j.id === id);
+  if (cached) return cached;
+
+  // 2. Fetch single document
+  try {
+    const jobRef = doc(db, 'jobs', id);
+    const snapshot = await getDoc(jobRef);
+    
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
+      return {
+        ...data,
+        id: snapshot.id,
+        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+      } as Job;
+    }
+  } catch (error) {
+    console.error('Error fetching single job:', error);
+  }
+  return null;
 };
 
 export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string> => {
@@ -175,10 +212,14 @@ export const deleteJob = async (id: string) => {
 };
 
 export const getStoredAds = async (): Promise<Ad[]> => {
+  if (adsCache.length > 0) return adsCache;
+  
   try {
     const adsRef = collection(db, 'ads');
     const snapshot = await getDocs(adsRef);
-    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
+    const ads = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
+    adsCache = ads;
+    return ads;
   } catch (error) {
     console.error('Error fetching ads from Firestore:', error);
     return [];

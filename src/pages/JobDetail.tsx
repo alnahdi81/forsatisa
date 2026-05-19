@@ -1,50 +1,62 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Job, Ad } from '../types';
-import { getStoredJobs, getStoredAds } from '../lib/dataService';
+import { getJobById, getStoredAds } from '../lib/dataService';
 import { MapPin, Building2, Calendar, Share2, ArrowRight, ExternalLink, ShieldCheck, Briefcase, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [job, setJob] = useState<Job | null>(null);
+  
+  // Try to get job from navigation state for instant loading
+  const stateJob = location.state?.job as Job | undefined;
+  
+  const [job, setJob] = useState<Job | null>(stateJob || null);
   const [ad, setAd] = useState<Ad | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!stateJob);
   const [isSharedData, setIsSharedData] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     
     const loadData = async () => {
-      setLoading(true);
-      
-      // 1. Try to find in stored jobs (Firestore)
-      const allJobs = await getStoredJobs();
-      let foundJob = allJobs.find(j => j.id === id);
-      
-      // 2. Fallback: Check if job data is encoded in URL (Share Link feature)
-      if (!foundJob) {
-        const encodedData = searchParams.get('data');
-        if (encodedData) {
-          try {
-            const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
-            if (decoded && decoded.id === id) {
-              foundJob = {
-                ...decoded,
-                createdAt: { toDate: () => new Date(decoded.createdAtDate || Date.now()) }
-              };
-              setIsSharedData(true);
+      // If we don't have the job from state, or id changed, fetch it
+      if (!job || job.id !== id) {
+        setLoading(true);
+        
+        // 1. Try to find by ID (faster, uses cache)
+        let foundJob = await getJobById(id);
+        
+        // 2. Fallback: Check if job data is encoded in URL (Share Link feature)
+        if (!foundJob) {
+          const encodedData = searchParams.get('data');
+          if (encodedData) {
+            try {
+              const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
+              if (decoded && decoded.id === id) {
+                foundJob = {
+                  ...decoded,
+                  createdAt: { toDate: () => new Date(decoded.createdAtDate || Date.now()) }
+                };
+                setIsSharedData(true);
+              }
+            } catch (e) {
+              console.error("Failed to parse shared job data", e);
             }
-          } catch (e) {
-            console.error("Failed to parse shared job data", e);
           }
         }
+
+        if (foundJob) {
+          setJob(foundJob);
+        }
+        setLoading(false);
       }
 
-      if (foundJob) {
-        setJob(foundJob);
-        const fullTitle = `فرصتي - ${foundJob.title}`;
+      // Update meta if job exists
+      if (job) {
+        const fullTitle = `فرصتي - ${job.title}`;
         document.title = fullTitle;
         
         const updateMeta = (selector: string, content: string) => {
@@ -53,19 +65,19 @@ export default function JobDetail() {
         };
         updateMeta('meta[property="og:title"]', fullTitle);
         updateMeta('meta[property="twitter:title"]', fullTitle);
-        updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} in ${foundJob.company} عبر منصة فرصتي.`);
-        updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} in ${foundJob.company} عبر منصة فرصتي.`);
+        updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${job.title} في ${job.company} عبر منصة فرصتي.`);
+        updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${job.title} في ${job.company} عبر منصة فرصتي.`);
       }
 
-      const allAds = await getStoredAds();
-      const jobAd = allAds.find(a => a.position === 'job_detail') || allAds.find(a => a.position === 'sidebar');
-      if (jobAd) setAd(jobAd);
-
-      setLoading(false);
+      // Load ads independently (don't block the job view)
+      getStoredAds().then(allAds => {
+        const jobAd = allAds.find(a => a.position === 'job_detail') || allAds.find(a => a.position === 'sidebar');
+        if (jobAd) setAd(jobAd);
+      });
     };
 
     loadData();
-  }, [id, searchParams]);
+  }, [id, searchParams, job]);
 
   const categoryLabels: Record<string, string> = {
     military: 'عسكري',
