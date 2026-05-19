@@ -1,4 +1,16 @@
 import { Job, Ad } from '../types';
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  orderBy, 
+  setDoc,
+  getDoc
+} from 'firebase/firestore';
+import { db } from './firebase';
 
 const MOCK_JOBS: Job[] = [
   {
@@ -26,231 +38,113 @@ const MOCK_JOBS: Job[] = [
     "createdAtManual": "2026-05-19",
     "id": "43l1iyaec",
     "createdAtDate": "2026-05-19T00:00:00.000Z"
-  },
-  {
-    "title": "مركز الملك عبدالله المالي يعلن بدء التقديم برنامج تمهير التدريبي للمهندسين",
-    "company": "حكومية",
-    "category": "government",
-    "location": "الرياض",
-    "externalLink": "https://www.linkedin.com/jobs/search/?currentJobId=4410152268&f_C=18787044&geoId=92000000&origin=COMPANY_PAGE_JOBS_CLUSTER_EXPANSION&originToLandingJobPostings=4410152268&trk=d_flagship3_company_posts",
-    "image": "https://www.wadhefa.com/logo/company/5fe5df46a563d.png",
-    "description": "يعلن مركز الملك عبدالله المالي بالرياض عن فتح التقديم في برنامج تمهير (للمهندسين) لاكسابهم خبرات عملية في العاصمة الرياض بعدة مزايا يقدمها صندوق تنمية الموارد البشرية على النحو التالي:\n\n \n\nنبذة عن البرنامج:\n\n \n\nصمم هذا البرنامج لتزويد المتقدين بخبرة عملية من خلال برنامج تدريب \" تمهير \" يعمل على مساعدة المتقدمين على بناء أساس متين لمستقبلهم المهني. بالإضافة إلى إمكانية العمل في بيئة داعمة، والمشاركة في مشاريع حقيقية، وتلقى تدريبًا عمليًا. وأيضاّ سيقوم فريقنا ذو الخبرة بالتوجيه والمساعدة على النمو مهنيًا وشخصيًا. مع اكتساب رؤى قيمة حول عملياتنا وتطور مهارات أساسية لمسيرتك المهنية. يوفر هذا البرنامج فرصة رائعة للتعلم والنجاح. ستساعد على تمكين مهارات المرشحين، وتمكينهم من اكتساب لمدة ستة أشهر إنها تجربة تطوير مهني خبره عملية طوال رحلة التدريب.\n\nمزايا برنامج تمهير:\n\n- تطوير المهارات والخبرات لحديثي التخرج وإعدادهم للمشاركة بفاعلية في سوق العمل السعودي.\n- يساهم البرنامج في زيادة فرص التوظيف من خلال اكتساب الخبرة بعد التخرج.\n- يحصل المتدرب على شهادة معتمدة بعد إتمامه البرنامج التدريبي تؤهله للحصول على وظيفة مناسبة لإمكانياته ومهاراته.\n- يحصل المتدرب (خلال فترة التدريب) على حقائب تدريبية إلكترونية.\n- يحصل المتدرب مكافأة مالية من صندوق تنمية الموارد البشرية (هدف).\n- يحصل المتدرب على تغطية تأمين ضد المخاطر.\n\n\nالشروط:\n\n \n\n- يجب ان يكون المتقدمـ/ـة سعودي الجنسية.\n\n- درجة البكالوريوس في الهندسة.\n\n- مهارات تواصل قوية.\n\n \n\nموعد بدء البرنامج:\n\n \n\n- يوليو 2026 \n\n\nنبذة عن المركز:\n\nمركز الملك عبدالله المالي (KAFD) من أكبر مشاريع الرياض القائمة والوحيد من نوعه في الشرق الأوسط،، يتكون المركز من (59) ناطحة سحاب وتبلغ مساحته (1,6) مليون متر مربع شمال الرياض. ويهدف لتحويل الرياض إلى عاصمة الشرق الأوسط الاقتصادية من خلال استيعاب الموظفين ذوي التأهيل العالي من العاملين في القطاعات المالية وتحويل المقار الرئيسية لهيئة السوق المالية وتداول والبنوك والمؤسسات المالية والاستشاريين الماليين والمحاسبين ومقدمي الخدمات التقنية للعمل في مكان واحد.\n\nطريقة التقديم:\n\nالخبر مضاف بتاريخ اليوم الأثنين 1447/12/1هـ (الموافق 2026/5/18) ",
-    "status": "active",
-    "createdAtManual": "2026-05-19",
-    "id": "1",
-    "createdAtDate": "2026-05-19T00:00:00.000Z"
-  },
-  {
-    "title": "شركة ولاء للتأمين تعلن برنامج تدريب تعاوني (COOP) للجنسين",
-    "company": "شركات",
-    "category": "company",
-    "location": "الخبر",
-    "externalLink": "https://imgx.wdeftksa.com/sa/images/1778745360893.jpg",
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQudGwJ6Im5W1KUEUIqbvAsKfyTLF1BDgeIGw&s",
-    "description": "وصف الوظيفة والمتطلبات\nشركة ولاء للتأمين التعاوني تعلن عن فتح باب التسجيل في برنامج التدريب التعاوني يونيو/يوليو 2026، وذلك وفقاً للتفاصيل والشروط الآتية.\n\n\nمسمى البرنامج:-\n\nبرنامج التدريب التعاوني - يونيو / يوليو 2026.\nنبذة عن البرنامج:-\n\nيقدم البرنامج فرصة لطلاب وطالبات البكالوريوس والدبلوم لاكتساب تجربة تدريب عملي داخل بيئة عمل حقيقية، بهدف تعزيز مهاراتهم وتأهيلهم لسوق العمل.\nالتخصصات المتاحة:-\n\nالمحاسبة.\nالموارد البشرية.\nالتأمين والمخاطر.\nالسلامة والصحة المهنية.\nإدارة الأعمال.\nالهندسة الصناعية.\nنظم المعلومات الإدارية.\nالأمن السيبراني.\nتقنية المعلومات.\nالطب.\nالصيدلة.\nالتمريض.\nالمالية.\nنظم المعلومات الصحية.\nفترة التدريب:-\n\nيبدأ البرنامج من يونيو حتى يوليو 2026، وتكون مدة التدريب لا تقل عن 12 أسبوع، حسب متطلبات جهة التعليم.\nفترة التقديم:-\n\nمتاح التقديم من اليوم الخميس بتاريخ 1447/11/27هـ الموافق بالميلادي 2026/05/14م ، ويستمر التقديم لمدة 10 أيام من تاريخ الإعلان.\nطريقة التقديم:-\nعن طريق إرسال السيرة الذاتية وخطاب التدريب من جهة التعليم إلى:\ncoop@walaa.com",
-    "status": "active",
-    "createdAtManual": "2026-05-18",
-    "id": "walaa-1",
-    "createdAtDate": "2026-05-18T00:00:00.000Z"
-  },
-  {
-    "title": "شركة تطوير لخدمات النقل (رافد) تعلن عن فتح باب التقديم في (برنامج التدريب التعاوني 2026م)",
-    "company": "رافد",
-    "category": "company",
-    "location": "الرياض",
-    "externalLink": "https://www.linkedin.com/jobs/view/4243644026",
-    "image": "https://pbs.twimg.com/profile_images/1539209536894050304/m0rMvH4W_400x400.jpg",
-    "description": "تعلن شركة تطوير لخدمات النقل (رافد) عن فتح باب التقديم في (برنامج التدريب التعاوني) لعام 2026م، وذلك وفقاً للتفاصيل والشروط الآتية.",
-    "status": "active",
-    "createdAtManual": "2026-05-17",
-    "id": "rafed-1",
-    "createdAtDate": "2026-05-17T00:00:00.000Z"
-  },
-  {
-    "title": "بنك الرياض يعلن عن بدء التقديم في (برنامج التدريب الميداني 2026م) للجنسين",
-    "company": "بنك الرياض",
-    "category": "company",
-    "location": "كافة المناطق",
-    "externalLink": "https://www.riyadbank.com/ar/about-us/careers",
-    "image": "https://upload.wikimedia.org/wikipedia/ar/0/0b/%D8%B4%D8%B9%D8%A7%D8%B1_%D8%A8%D9%86%D9%83_%D8%A7%D9%84%D8%B1%D9%81%D8%A7%D8%B6.png",
-    "description": "يعلن بنك الرياض عن بدء التقديم في برنامج التدريب الميداني لعام 2026م في مختلف التخصصات.",
-    "status": "active",
-    "createdAtManual": "2026-05-16",
-    "id": "riyad-1",
-    "createdAtDate": "2026-05-16T00:00:00.000Z"
-  },
-  {
-    "title": "المركز الوطني (وقاء) يعلن عن وظائف شاغرة في مختلف مناطق المملكة",
-    "company": "وقاء",
-    "category": "government",
-    "location": "كافة المناطق",
-    "externalLink": "https://weqaa.gov.sa/",
-    "image": "https://pbs.twimg.com/profile_images/1454728514588725251/vY5Nq6i4_400x400.jpg",
-    "description": "تعلن هيئة وقاء عن توفر وظائف شاغرة لحملة مختلف المؤهلات العلمية.",
-    "status": "active",
-    "createdAtManual": "2026-05-15",
-    "id": "weqaa-1",
-    "createdAtDate": "2026-05-15T00:00:00.000Z"
-  },
-  {
-    "title": "شركة باب رزق جميل تعلن عن 150 وظيفة براتب يصل (6,000 ريال)",
-    "company": "باب رزق جميل",
-    "category": "company",
-    "location": "الرياض ، جدة ، الدمام",
-    "externalLink": "https://www.babrizqjameel.com/",
-    "image": "https://pbs.twimg.com/profile_images/1118128362547146752/F_m9_R_r_400x400.png",
-    "description": "تعلن شركة باب رزق جميل عن توفر 150 وظيفة شاغرة في عدة مدن بالمملكة.",
-    "status": "active",
-    "createdAtManual": "2026-05-14",
-    "id": "brj-1",
-    "createdAtDate": "2026-05-14T00:00:00.000Z"
-  },
-  {
-    "title": "شركة أمازون السعودية تعلن عن وظائف إدارية وتقنية وهندسية",
-    "company": "أمازون",
-    "category": "company",
-    "location": "الرياض ، جدة",
-    "externalLink": "https://www.amazon.jobs/en/locations/saudi-arabia",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg",
-    "description": "تعلن شركة أمازون عن توفر وظائف شاغرة في مكاتبها ومستودعاتها بالمملكة.",
-    "status": "active",
-    "createdAtManual": "2026-05-13",
-    "id": "amazon-1",
-    "createdAtDate": "2026-05-13T00:00:00.000Z"
-  },
-  {
-    "title": "شركة أرامكو السعودية تعلن عن فتح باب التقديم في برامج التدريب (جامعيين ودبلوم)",
-    "company": "أرامكو",
-    "category": "company",
-    "location": "الظهران ، جدة ، الرياض",
-    "externalLink": "https://www.aramco.com/ar/careers",
-    "image": "https://upload.wikimedia.org/wikipedia/ar/archive/a/a2/20140417011956%21Saudi_Aramco_logo.svg.png",
-    "description": "تعلن شركة أرامكو السعودية عن بدء التقديم في برامج التدريب التعاوني.",
-    "status": "active",
-    "createdAtManual": "2026-05-12",
-    "id": "aramco-1",
-    "createdAtDate": "2026-05-12T00:00:00.000Z"
-  },
-  {
-    "title": "مشروع نيوم يعلن عن وظائف شاغرة في مختلف التخصصات",
-    "company": "نيوم",
-    "category": "company",
-    "location": "نيوم ، تبوك",
-    "externalLink": "https://www.neom.com/ar-sa/be-part-of-neom",
-    "image": "https://upload.wikimedia.org/wikipedia/ar/e/e1/NEOM_Logo.png",
-    "description": "يعلن مشروع نيوم عن توفر مئات الفرص الوظيفية في مختلف القطاعات.",
-    "status": "active",
-    "createdAtManual": "2026-05-11",
-    "id": "neom-1",
-    "createdAtDate": "2026-05-11T00:00:00.000Z"
   }
 ];
 
-export const getStoredJobs = (): Job[] => {
-  const STORAGE_KEY = 'forsati_jobs';
-  const INIT_KEY = 'forsati_v1_initialized';
-  const legacyKeys = ['jobs', 'all_jobs', 'forsati-jobs'];
+// Helper to seed the database if it's the first time
+export const seedDatabaseIfEmpty = async () => {
+  const jobsRef = collection(db, 'jobs');
+  const snapshot = await getDocs(jobsRef);
   
-  const saved = localStorage.getItem(STORAGE_KEY);
-  const initialized = localStorage.getItem(INIT_KEY);
-  
-  if (saved === null && initialized === null) {
-    // FIRST TIME EVER: Initialize from MOCK_JOBS and Legacy
-    const jobMap = new Map<string, Job>();
-
-    // 1. Add Hardcoded base
-    MOCK_JOBS.forEach(j => {
-      const d = new Date(j.createdAtDate || Date.now());
-      jobMap.set(j.id, {
-        ...j,
-        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+  if (snapshot.empty) {
+    console.log('Seeding database with mock jobs...');
+    for (const job of MOCK_JOBS) {
+      await setDoc(doc(db, 'jobs', job.id), {
+        ...job,
+        createdAtDate: job.createdAtDate || new Date().toISOString()
       });
-    });
-
-    // 2. Try to recover from legacy keys (if any)
-    legacyKeys.forEach(key => {
-      const legacyData = localStorage.getItem(key);
-      if (legacyData) {
-        try {
-          const parsed = JSON.parse(legacyData);
-          if (Array.isArray(parsed)) {
-            parsed.forEach((j: any) => {
-              if (j && j.id) {
-                let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
-                const d = new Date(dateVal || Date.now());
-                jobMap.set(j.id, {
-                  ...j,
-                  createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-                });
-              }
-            });
-          }
-        } catch (e) { /* ignore */ }
-      }
-    });
-
-    const initialSet = Array.from(jobMap.values());
-    
-    // Save this state so it becomes the authoritative editable/deletable set
-    const dataToSave = initialSet.map(j => ({
-      ...j,
-      createdAtDate: j.createdAt?.toDate ? j.createdAt.toDate().toISOString() : new Date().toISOString()
-    }));
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-    localStorage.setItem(INIT_KEY, 'true');
-    
-    return initialSet.sort((a, b) => {
-      const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-      const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-      return timeB - timeA;
-    });
-  }
-
-  // SUBSEQUENT LOADS: Trust the Storage Key implicitly (even if it's an empty array [])
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed.map((j: any) => {
-          let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
-          if (typeof dateVal === 'object' && dateVal?.seconds) {
-            dateVal = dateVal.seconds * 1000;
-          }
-          const d = new Date(dateVal || Date.now());
-          return {
-            ...j,
-            createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-          };
-        }).sort((a, b) => {
-          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return timeB - timeA;
-        });
-      }
-    } catch (e) {
-      console.error('Error parsing jobs', e);
     }
+    console.log('Database seeded.');
   }
-
-  return [];
 };
 
-export const getStoredAds = (): Ad[] => {
-  const saved = localStorage.getItem('forsati_ads');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    } catch (e) {
-      console.error('Error parsing ads', e);
-    }
+export const getStoredJobs = async (): Promise<Job[]> => {
+  try {
+    const jobsRef = collection(db, 'jobs');
+    const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
+      return {
+        ...data,
+        id: doc.id,
+        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+      } as Job;
+    });
+  } catch (error) {
+    console.error('Error fetching jobs from Firestore:', error);
+    return [];
   }
-  return [];
 };
 
-export const saveStoredAds = (ads: Ad[]) => {
-  localStorage.setItem('forsati_ads', JSON.stringify(ads));
+export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string> => {
+  try {
+    const jobsRef = collection(db, 'jobs');
+    const docRef = await addDoc(jobsRef, {
+      ...job,
+      createdAtDate: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding job to Firestore:', error);
+    throw error;
+  }
+};
+
+export const updateJob = async (id: string, job: Partial<Job>) => {
+  try {
+    const jobRef = doc(db, 'jobs', id);
+    await setDoc(jobRef, job, { merge: true });
+  } catch (error) {
+    console.error('Error updating job in Firestore:', error);
+    throw error;
+  }
+};
+
+export const deleteJob = async (id: string) => {
+  try {
+    const jobRef = doc(db, 'jobs', id);
+    await deleteDoc(jobRef);
+  } catch (error) {
+    console.error('Error deleting job from Firestore:', error);
+    throw error;
+  }
+};
+
+export const getStoredAds = async (): Promise<Ad[]> => {
+  try {
+    const adsRef = collection(db, 'ads');
+    const snapshot = await getDocs(adsRef);
+    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
+  } catch (error) {
+    console.error('Error fetching ads from Firestore:', error);
+    return [];
+  }
+};
+
+export const saveAd = async (ad: Omit<Ad, 'id'>, id?: string) => {
+  try {
+    const adsRef = collection(db, 'ads');
+    if (id) {
+      const adRef = doc(db, 'ads', id);
+      await setDoc(adRef, ad, { merge: true });
+    } else {
+      await addDoc(adsRef, ad);
+    }
+  } catch (error) {
+    console.error('Error saving ad to Firestore:', error);
+    throw error;
+  }
+};
+
+export const deleteAd = async (id: string) => {
+  try {
+    const adRef = doc(db, 'ads', id);
+    await deleteDoc(adRef);
+  } catch (error) {
+    console.error('Error deleting ad from Firestore:', error);
+    throw error;
+  }
 };

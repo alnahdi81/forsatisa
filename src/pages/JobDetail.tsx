@@ -16,50 +16,56 @@ export default function JobDetail() {
   useEffect(() => {
     if (!id) return;
     
-    // 1. Try to find in stored jobs
-    const allJobs = getStoredJobs();
-    let foundJob = allJobs.find(j => j.id === id);
-    
-    // 2. Fallback: Check if job data is encoded in URL (Share Link feature)
-    if (!foundJob) {
-      const encodedData = searchParams.get('data');
-      if (encodedData) {
-        try {
-          const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
-          if (decoded && decoded.id === id) {
-            foundJob = {
-              ...decoded,
-              createdAt: { toDate: () => new Date(decoded.createdAtDate || Date.now()) }
-            };
-            setIsSharedData(true);
+    const loadData = async () => {
+      setLoading(true);
+      
+      // 1. Try to find in stored jobs (Firestore)
+      const allJobs = await getStoredJobs();
+      let foundJob = allJobs.find(j => j.id === id);
+      
+      // 2. Fallback: Check if job data is encoded in URL (Share Link feature)
+      if (!foundJob) {
+        const encodedData = searchParams.get('data');
+        if (encodedData) {
+          try {
+            const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
+            if (decoded && decoded.id === id) {
+              foundJob = {
+                ...decoded,
+                createdAt: { toDate: () => new Date(decoded.createdAtDate || Date.now()) }
+              };
+              setIsSharedData(true);
+            }
+          } catch (e) {
+            console.error("Failed to parse shared job data", e);
           }
-        } catch (e) {
-          console.error("Failed to parse shared job data", e);
         }
       }
-    }
 
-    if (foundJob) {
-      setJob(foundJob);
-      const fullTitle = `فرصتي - ${foundJob.title}`;
-      document.title = fullTitle;
-      
-      const updateMeta = (selector: string, content: string) => {
-        const el = document.querySelector(selector);
-        if (el) el.setAttribute('content', content);
-      };
-      updateMeta('meta[property="og:title"]', fullTitle);
-      updateMeta('meta[property="twitter:title"]', fullTitle);
-      updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} في ${foundJob.company} عبر منصة فرصتي.`);
-      updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} في ${foundJob.company} عبر منصة فرصتي.`);
-    }
+      if (foundJob) {
+        setJob(foundJob);
+        const fullTitle = `فرصتي - ${foundJob.title}`;
+        document.title = fullTitle;
+        
+        const updateMeta = (selector: string, content: string) => {
+          const el = document.querySelector(selector);
+          if (el) el.setAttribute('content', content);
+        };
+        updateMeta('meta[property="og:title"]', fullTitle);
+        updateMeta('meta[property="twitter:title"]', fullTitle);
+        updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} in ${foundJob.company} عبر منصة فرصتي.`);
+        updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} in ${foundJob.company} عبر منصة فرصتي.`);
+      }
 
-    const allAds = getStoredAds();
-    const jobAd = allAds.find(a => a.position === 'job_detail') || allAds.find(a => a.position === 'sidebar');
-    if (jobAd) setAd(jobAd);
+      const allAds = await getStoredAds();
+      const jobAd = allAds.find(a => a.position === 'job_detail') || allAds.find(a => a.position === 'sidebar');
+      if (jobAd) setAd(jobAd);
 
-    setLoading(false);
-  }, [id]);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [id, searchParams]);
 
   const categoryLabels: Record<string, string> = {
     military: 'عسكري',

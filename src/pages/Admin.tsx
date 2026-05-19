@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Job, Ad } from '../types';
-import { getStoredJobs, getStoredAds, saveStoredAds } from '../lib/dataService';
+import { getStoredJobs, getStoredAds, addJob, updateJob, deleteJob, saveAd, deleteAd } from '../lib/dataService';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -55,55 +55,62 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    setJobs(getStoredJobs());
-    setAds(getStoredAds());
-    setIsLoading(false);
+    const loadData = async () => {
+      setIsLoading(true);
+      const [fetchedJobs, fetchedAds] = await Promise.all([
+        getStoredJobs(),
+        getStoredAds()
+      ]);
+      setJobs(fetchedJobs);
+      setAds(fetchedAds);
+      setIsLoading(false);
+    };
+    loadData();
   }, []);
 
-  const saveJobs = (updated: Job[]) => {
-    setJobs(updated);
-    // Sort and save
-    const dataToSave = updated.map(j => ({
-      ...j,
-      createdAtDate: j.createdAt?.toDate ? j.createdAt.toDate().toISOString() : (typeof j.createdAt === 'string' ? j.createdAt : (j.createdAtDate || new Date().toISOString()))
-    }));
-    localStorage.setItem('forsati_jobs', JSON.stringify(dataToSave));
-    setSuccessMsg('تم حفظ البيانات بنجاح!');
-    setTimeout(() => setSuccessMsg(''), 3000);
-  };
-
-  const handleClearAll = () => {
-    if (window.confirm('هل أنت متأكد من حذف جميع البيانات (الوظائف والإعلانات) والعودة للإعدادات الافتراضية؟')) {
-      localStorage.removeItem('forsati_jobs');
-      localStorage.removeItem('forsati_ads');
-      localStorage.removeItem('jobs');
-      localStorage.removeItem('forsati-jobs');
-      localStorage.removeItem('all_jobs');
-      window.location.reload();
-    }
-  };
-
-  const handleAdSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newAd: Ad = {
-      ...adFormData,
-      id: editingId || Math.random().toString(36).substr(2, 9)
-    };
-
-    let updated;
-    if (editingId) {
-      updated = ads.map(a => a.id === editingId ? newAd : a);
+  const refreshData = async () => {
+    if (activeTab === 'jobs') {
+      const updated = await getStoredJobs();
+      setJobs(updated);
     } else {
-      updated = [newAd, ...ads];
+      const updated = await getStoredAds();
+      setAds(updated);
     }
+  };
 
-    setAds(updated);
-    saveStoredAds(updated);
-    setAdFormData({ title: '', image: '', link: '', position: 'home_hero' });
-    setEditingId(null);
-    setShowForm(false);
-    setSuccessMsg('تم حفظ الإعلان بنجاح!');
-    setTimeout(() => setSuccessMsg(''), 3000);
+  const handleAdSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await saveAd(adFormData, editingId || undefined);
+      await refreshData();
+      setAdFormData({ title: '', image: '', link: '', position: 'home_hero' });
+      setEditingId(null);
+      setShowForm(false);
+      setSuccessMsg('تم حفظ الإعلان بنجاح!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAd = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
+      setIsLoading(true);
+      try {
+        const { deleteAd } = await import('../lib/dataService');
+        await deleteAd(id);
+        await refreshData();
+        setSuccessMsg('تم حذف الإعلان بنجاح!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   const handleReset = () => {
@@ -128,40 +135,48 @@ export default function Admin() {
     setShowForm(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Create a vanilla object that we can safely serialize
-    const jobData: any = {
-      ...formData,
-      id: editingId || Math.random().toString(36).substr(2, 9),
-    };
-
-    // Store the date as a property we can use later to reconstruct toDate()
-    jobData.createdAtDate = new Date(formData.createdAtManual).toISOString();
-
-    let updated;
-    if (editingId) {
-      updated = jobs.map(j => j.id === editingId ? {
-        ...jobData,
-        createdAt: { toDate: () => new Date(jobData.createdAtDate) }
-      } : j);
-    } else {
-      const newJob = {
-        ...jobData,
-        createdAt: { toDate: () => new Date(jobData.createdAtDate) }
-      };
-      updated = [newJob, ...jobs];
+    setIsLoading(true);
+    try {
+      if (editingId) {
+        await updateJob(editingId, {
+          ...formData,
+          createdAtManual: formData.createdAtManual,
+          createdAtDate: new Date(formData.createdAtManual).toISOString()
+        } as any);
+      } else {
+        await addJob({
+          ...formData,
+          createdAtManual: formData.createdAtManual,
+          createdAtDate: new Date(formData.createdAtManual).toISOString()
+        } as any);
+      }
+      
+      await refreshData();
+      handleReset();
+      setSuccessMsg('تم حفظ الوظيفة بنجاح!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    saveJobs(updated as Job[]);
-    handleReset();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الوظيفة؟')) {
-      const updated = jobs.filter(j => j.id !== id);
-      saveJobs(updated);
+      setIsLoading(true);
+      try {
+        await deleteJob(id);
+        await refreshData();
+        setSuccessMsg('تم حذف الوظيفة بنجاح!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -543,13 +558,7 @@ export default function Admin() {
                          <Plus className="rotate-45" size={20} />
                        </button>
                        <button 
-                         onClick={() => {
-                           if(window.confirm('حذف الإعلان؟')) {
-                             const updated = ads.filter(a => a.id !== ad.id);
-                             setAds(updated);
-                             saveStoredAds(updated);
-                           }
-                         }}
+                         onClick={() => handleDeleteAd(ad.id)}
                          className="p-3 bg-red-500 rounded-xl text-white hover:scale-110 transition-all"
                        >
                          <Trash2 size={20} />

@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Validation helpers
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidJob(job) {
+      return job.size() >= 6 &&
+        job.id is string &&
+        job.title is string && job.title.size() <= 200 &&
+        job.company is string && job.company.size() <= 100 &&
+        job.category is string &&
+        job.status in ['active', 'soon', 'expiring', 'expired'] &&
+        job.externalLink is string;
+    }
+
+    function isValidAd(ad) {
+      return ad.size() >= 5 &&
+        ad.id is string &&
+        ad.title is string && ad.title.size() <= 200 &&
+        ad.image is string &&
+        ad.link is string &&
+        ad.position in ['home_hero', 'sidebar', 'job_detail'];
+    }
+
+    // Collections
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow write: if true; // Temporarily open for initial setup and user testing as requested
+    }
+
+    match /ads/{adId} {
+      allow read: if true;
+      allow write: if true; // Temporarily open
+    }
+  }
+}

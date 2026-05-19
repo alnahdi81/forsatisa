@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams, Navigate } from 'react-router-dom';
 import { Menu, X, Instagram, Send } from 'lucide-react';
 import { WhatsAppIcon, TikTokIcon } from './components/Icons';
 import { useState, FormEvent, useEffect } from 'react';
@@ -26,6 +26,11 @@ import JobList from './pages/JobList';
 import JobDetail from './pages/JobDetail';
 import Admin from './pages/Admin';
 import StaticPage from './pages/StaticPages';
+
+function JobRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/job/${id}`} replace />;
+}
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -188,6 +193,7 @@ export default function App() {
           <Route path="/jobs" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><JobList /></main><Footer /></>} />
           <Route path="/category/:category" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><CategoryWrapper /></main><Footer /></>} />
           <Route path="/job/:id" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><JobDetail /></main><Footer /></>} />
+          <Route path="/j/:id" element={<JobRedirect />} />
           
           <Route path="/about" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="من نحن" /></main><Footer /></>} />
           <Route path="/contact" element={<><Navbar /><main className="flex-1 text-right" dir="rtl"><StaticPage title="اتصل بنا" /></main><Footer /></>} />

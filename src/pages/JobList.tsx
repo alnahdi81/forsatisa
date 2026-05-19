@@ -14,13 +14,18 @@ export default function JobList({ category }: { category?: string }) {
     const title = category ? `فرصتي - ${categoryLabels[category]}` : "فرصتي - جميع الوظائف";
     document.title = title;
     
-    const allJobs = getStoredJobs();
-    if (category) {
-      setJobs(allJobs.filter(j => j.category === category));
-    } else {
-      setJobs(allJobs);
-    }
-    setLoading(false);
+    const loadJobs = async () => {
+      setLoading(true);
+      const allJobs = await getStoredJobs();
+      if (category) {
+        setJobs(allJobs.filter(j => j.category === category));
+      } else {
+        setJobs(allJobs);
+      }
+      setLoading(false);
+    };
+
+    loadJobs();
   }, [category]);
 
   const categoryLabels: Record<string, string> = {

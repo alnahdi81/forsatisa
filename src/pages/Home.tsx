@@ -16,12 +16,19 @@ export default function Home() {
     const defaultTitle = "فرصتي .. نحو النجاح";
     document.title = defaultTitle;
     
-    // ... meta updates ...
-    
     // Load local jobs and ads
-    setJobs(getStoredJobs());
-    setAds(getStoredAds());
-    setLoading(false);
+    const loadData = async () => {
+      setLoading(true);
+      const [fetchedJobs, fetchedAds] = await Promise.all([
+        getStoredJobs(),
+        getStoredAds()
+      ]);
+      setJobs(fetchedJobs);
+      setAds(fetchedAds);
+      setLoading(false);
+    };
+
+    loadData();
   }, []);
 
   const stats = [
