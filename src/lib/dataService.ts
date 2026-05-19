@@ -148,11 +148,13 @@ const MOCK_JOBS: Job[] = [
 
 export const getStoredJobs = (): Job[] => {
   const STORAGE_KEY = 'forsati_jobs';
+  const INIT_KEY = 'forsati_v1_initialized';
   const legacyKeys = ['jobs', 'all_jobs', 'forsati-jobs'];
   
   const saved = localStorage.getItem(STORAGE_KEY);
+  const initialized = localStorage.getItem(INIT_KEY);
   
-  if (saved === null) {
+  if (saved === null && initialized === null) {
     // FIRST TIME EVER: Initialize from MOCK_JOBS and Legacy
     const jobMap = new Map<string, Job>();
 
@@ -194,7 +196,9 @@ export const getStoredJobs = (): Job[] => {
       ...j,
       createdAtDate: j.createdAt?.toDate ? j.createdAt.toDate().toISOString() : new Date().toISOString()
     }));
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    localStorage.setItem(INIT_KEY, 'true');
     
     return initialSet.sort((a, b) => {
       const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
@@ -204,27 +208,29 @@ export const getStoredJobs = (): Job[] => {
   }
 
   // SUBSEQUENT LOADS: Trust the Storage Key implicitly (even if it's an empty array [])
-  try {
-    const parsed = JSON.parse(saved);
-    if (Array.isArray(parsed)) {
-      return parsed.map((j: any) => {
-        let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
-        if (typeof dateVal === 'object' && dateVal?.seconds) {
-          dateVal = dateVal.seconds * 1000;
-        }
-        const d = new Date(dateVal || Date.now());
-        return {
-          ...j,
-          createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-        };
-      }).sort((a, b) => {
-        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-        return timeB - timeA;
-      });
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.map((j: any) => {
+          let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
+          if (typeof dateVal === 'object' && dateVal?.seconds) {
+            dateVal = dateVal.seconds * 1000;
+          }
+          const d = new Date(dateVal || Date.now());
+          return {
+            ...j,
+            createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+          };
+        }).sort((a, b) => {
+          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return timeB - timeA;
+        });
+      }
+    } catch (e) {
+      console.error('Error parsing jobs', e);
     }
-  } catch (e) {
-    console.error('Error parsing jobs', e);
   }
 
   return [];
