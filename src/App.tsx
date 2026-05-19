@@ -41,17 +41,18 @@ function Navbar() {
             <div className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse" />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-6">
-            <Link to="/" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
-            <Link to="/jobs" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/jobs' ? 'text-brand-yellow' : 'text-gray-600'}`}>جميع الوظائف</Link>
-            <Link to="/category/military" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>وظائف عسكرية</Link>
-            <Link to="/category/government" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/government' ? 'text-brand-yellow' : 'text-gray-600'}`}>حكومية</Link>
-            <Link to="/category/company" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>شركات</Link>
-            <Link to="/category/university" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>مواعيد الجامعات</Link>
-            <Link to="/category/training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات تدريبية</Link>
-            <Link to="/category/remote" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
-            <div className="w-[1px] h-4 bg-gray-200 mx-1" />
-            <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[12px] font-bold text-brand-black bg-brand-yellow px-3 py-1.5 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">إنشاء سيرة ذاتية</a>
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+            <Link to="/" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
+            <Link to="/jobs" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/jobs' ? 'text-brand-yellow' : 'text-gray-600'}`}>جميع الوظائف</Link>
+            <Link to="/category/military" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>عسكرية</Link>
+            <Link to="/category/government" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/government' ? 'text-brand-yellow' : 'text-gray-600'}`}>حكومية</Link>
+            <Link to="/category/company" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>شركات</Link>
+            <Link to="/category/university" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>مواعيد الجامعات</Link>
+            <Link to="/category/training" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات</Link>
+            <Link to="/category/employment_training" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/employment_training' ? 'text-brand-yellow' : 'text-gray-600'}`}>تدريب منتهي بالتوظيف</Link>
+            <Link to="/category/remote" className={`text-[12px] xl:text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
+            <div className="w-[1px] h-4 bg-gray-200" />
+            <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[11px] xl:text-[12px] font-bold text-brand-black bg-brand-yellow px-3 py-2 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">سيرة ذاتية</a>
           </div>
 
           <div className="flex items-center gap-2">

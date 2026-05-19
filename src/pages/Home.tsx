@@ -95,32 +95,32 @@ export default function Home() {
       </section>
 
       {/* Categories Grid */}
-      <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-30">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <section className="max-w-7xl mx-auto px-4 -mt-16 md:-mt-12 relative z-30">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
           {[
-            { label: 'عسكرية', path: 'military', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'حكومية', path: 'government', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'شركات', path: 'company', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'عن بعد', path: 'remote', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'جامعات', path: 'university', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'دورات', path: 'training', color: 'bg-white text-[#1a1a1a]' },
-            { label: 'تدريب', path: 'employment_training', color: 'bg-white text-[#1a1a1a]' },
+            { label: 'وظائف عسكرية', path: 'military', icon: ShieldCheck, color: 'text-brand-yellow' },
+            { label: 'وظائف حكومية', path: 'government', icon: Building, color: 'text-blue-500' },
+            { label: 'وظائف الشركات', path: 'company', icon: Briefcase, color: 'text-green-500' },
+            { label: 'وظائف عن بعد', path: 'remote', icon: Users, color: 'text-purple-500' },
+            { label: 'مواعيد الجامعات', path: 'university', icon: Building, color: 'text-orange-500' },
+            { label: 'دورات تدريبية', path: 'training', icon: Briefcase, color: 'text-red-500' },
+            { label: 'تدريب منتهي بالتوظيف', path: 'employment_training', icon: Users, color: 'text-indigo-500' },
           ].map((cat, i) => (
             <motion.div
               key={cat.path}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.05 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
             >
               <Link 
                 to={`/category/${cat.path}`}
-                className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border border-gray-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 ${cat.color} group relative overflow-hidden`}
+                className="flex flex-col items-center justify-center p-5 md:p-6 bg-white rounded-[2rem] border border-gray-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group relative overflow-hidden h-full min-h-[140px]"
               >
-                <div className="absolute top-0 right-0 w-12 h-12 bg-brand-yellow/5 rounded-full -mr-6 -mt-6"></div>
+                <div className="absolute top-0 right-0 w-12 h-12 bg-gray-50 rounded-full -mr-6 -mt-6"></div>
                 <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                   <Briefcase size={24} className="text-brand-yellow" />
+                   <cat.icon size={24} className={cat.color} />
                 </div>
-                <span className="font-black text-xs">{cat.label}</span>
+                <span className="font-black text-[11px] md:text-xs text-brand-black text-center leading-tight">{cat.label}</span>
               </Link>
             </motion.div>
           ))}
