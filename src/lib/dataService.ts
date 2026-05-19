@@ -152,34 +152,11 @@ export const getStoredJobs = (): Job[] => {
   
   const saved = localStorage.getItem(STORAGE_KEY);
   
-  let jobs: Job[] = [];
-
-  if (saved !== null) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        jobs = parsed.map((j: any) => {
-          let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
-          if (typeof dateVal === 'object' && dateVal?.seconds) {
-            dateVal = dateVal.seconds * 1000;
-          }
-          const d = new Date(dateVal || Date.now());
-          return {
-            ...j,
-            createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-          };
-        });
-      }
-    } catch (e) {
-      console.error('Error parsing jobs', e);
-    }
-  } 
-  
-  // If no data in main key, check legacy keys OR initialize from MOCK_JOBS
-  if (jobs.length === 0 && (saved === null || saved === '[]')) {
+  if (saved === null) {
+    // FIRST TIME EVER: Initialize from MOCK_JOBS and Legacy
     const jobMap = new Map<string, Job>();
 
-    // 1. Load Hardcoded base
+    // 1. Add Hardcoded base
     MOCK_JOBS.forEach(j => {
       const d = new Date(j.createdAtDate || Date.now());
       jobMap.set(j.id, {
@@ -188,7 +165,7 @@ export const getStoredJobs = (): Job[] => {
       });
     });
 
-    // 2. Try to recover from legacy keys
+    // 2. Try to recover from legacy keys (if any)
     legacyKeys.forEach(key => {
       const legacyData = localStorage.getItem(key);
       if (legacyData) {
@@ -226,11 +203,31 @@ export const getStoredJobs = (): Job[] => {
     });
   }
 
-  return jobs.sort((a, b) => {
-    const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-    const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-    return timeB - timeA;
-  });
+  // SUBSEQUENT LOADS: Trust the Storage Key implicitly (even if it's an empty array [])
+  try {
+    const parsed = JSON.parse(saved);
+    if (Array.isArray(parsed)) {
+      return parsed.map((j: any) => {
+        let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
+        if (typeof dateVal === 'object' && dateVal?.seconds) {
+          dateVal = dateVal.seconds * 1000;
+        }
+        const d = new Date(dateVal || Date.now());
+        return {
+          ...j,
+          createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+        };
+      }).sort((a, b) => {
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        return timeB - timeA;
+      });
+    }
+  } catch (e) {
+    console.error('Error parsing jobs', e);
+  }
+
+  return [];
 };
 
 export const getStoredAds = (): Ad[] => {
