@@ -58,7 +58,7 @@ export const seedDatabaseIfEmpty = async () => {
   }
 };
 
-export const subscribeToJobs = (callback: (jobs: Job[]) => void) => {
+export const subscribeToJobs = (callback: (jobs: Job[]) => void, onError?: (error: any) => void) => {
   const jobsRef = collection(db, 'jobs');
   const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
   
@@ -75,16 +75,18 @@ export const subscribeToJobs = (callback: (jobs: Job[]) => void) => {
     callback(jobs);
   }, (error) => {
     console.error('Error subscribing to jobs:', error);
+    if (onError) onError(error);
   });
 };
 
-export const subscribeToAds = (callback: (ads: Ad[]) => void) => {
+export const subscribeToAds = (callback: (ads: Ad[]) => void, onError?: (error: any) => void) => {
   const adsRef = collection(db, 'ads');
   return onSnapshot(adsRef, (snapshot) => {
     const ads = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Ad);
     callback(ads);
   }, (error) => {
     console.error('Error subscribing to ads:', error);
+    if (onError) onError(error);
   });
 };
 

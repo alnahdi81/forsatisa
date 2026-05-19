@@ -11,7 +11,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState<'jobs' | 'ads'>('jobs');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [ads, setAds] = useState<Ad[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
@@ -55,19 +55,44 @@ export default function Admin() {
   });
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
+    let timedOut = false;
+    
+    // Safety timeout to prevent infinite spinning
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      setIsLoading(false);
+    }, 4000);
+
     const unsubJobs = subscribeToJobs((data) => {
       setJobs(data);
+      if (!timedOut) {
+        setIsLoading(false);
+        clearTimeout(timeout);
+      }
+    }, (err) => {
+      console.error('Jobs subscription error:', err);
       setIsLoading(false);
+      clearTimeout(timeout);
     });
+
     const unsubAds = subscribeToAds((data) => {
       setAds(data);
+    }, (err) => {
+      console.error('Ads subscription error:', err);
     });
+
     return () => {
       unsubJobs();
       unsubAds();
+      clearTimeout(timeout);
     };
-  }, []);
+  }, [isLoggedIn]);
 
   const handleAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,11 +225,6 @@ export default function Admin() {
     );
   }
 
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] font-sans pb-20" dir="rtl">
@@ -247,6 +267,20 @@ export default function Admin() {
           </div>
         </div>
       </nav>
+
+      {/* Stats and Content Area with Loading Indicator */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-[60] flex flex-col items-center justify-center pointer-events-none">
+          <div className="w-14 h-14 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-brand-black font-black text-sm animate-pulse">جاري تحميل البيانات...</p>
+          <button 
+            onClick={() => setIsLoading(false)}
+            className="mt-8 px-6 py-2 bg-white text-gray-400 text-xs font-bold rounded-xl border border-gray-100 pointer-events-auto hover:text-brand-black transition-all"
+          >
+            تخطي الانتظار
+          </button>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit mb-8">
