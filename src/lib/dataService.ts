@@ -113,6 +113,12 @@ export const getStoredJobs = async (): Promise<Job[]> => {
 
 export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string> => {
   console.log('Firebase: addJob called with data:', job);
+  
+  // Timeout for Firestore operation
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 10000)
+  );
+
   try {
     const jobsRef = collection(db, 'jobs');
     const saveData = {
@@ -120,7 +126,12 @@ export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string
       createdAtDate: job.createdAtDate || new Date().toISOString()
     };
     console.log('Firebase: Attempting addDoc...');
-    const docRef = await addDoc(jobsRef, saveData);
+    
+    const docRef = (await Promise.race([
+      addDoc(jobsRef, saveData),
+      timeoutPromise
+    ])) as any;
+    
     console.log('Firebase: addDoc successful, ID:', docRef.id);
     return docRef.id;
   } catch (error) {
@@ -131,10 +142,21 @@ export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string
 
 export const updateJob = async (id: string, job: Partial<Job>) => {
   console.log('Firebase: updateJob called for ID:', id, 'with data:', job);
+  
+  // Timeout for Firestore operation
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 10000)
+  );
+
   try {
     const jobRef = doc(db, 'jobs', id);
     console.log('Firebase: Attempting setDoc (merge)...');
-    await setDoc(jobRef, job, { merge: true });
+    
+    await Promise.race([
+      setDoc(jobRef, job, { merge: true }),
+      timeoutPromise
+    ]);
+    
     console.log('Firebase: setDoc successful');
   } catch (error) {
     console.error('Firebase: Error updating job in Firestore:', error);
@@ -164,13 +186,16 @@ export const getStoredAds = async (): Promise<Ad[]> => {
 };
 
 export const saveAd = async (ad: Omit<Ad, 'id'>, id?: string) => {
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً.')), 10000)
+  );
   try {
     const adsRef = collection(db, 'ads');
     if (id) {
       const adRef = doc(db, 'ads', id);
-      await setDoc(adRef, ad, { merge: true });
+      await Promise.race([setDoc(adRef, ad, { merge: true }), timeoutPromise]);
     } else {
-      await addDoc(adsRef, ad);
+      await Promise.race([addDoc(adsRef, ad), timeoutPromise]);
     }
   } catch (error) {
     console.error('Error saving ad to Firestore:', error);

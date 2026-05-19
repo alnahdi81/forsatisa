@@ -159,19 +159,19 @@ export default function Admin() {
     setIsSubmitting(true);
     setSuccessMsg('');
     
-    console.log('Submission process started...');
+    console.log('Admin: Starting submission flow...');
     
-    // Safety timeout for the entire submission process
+    // Safety timeout for the entire submission process UI-side
     const submissionTimeout = setTimeout(() => {
       if (isSubmittingRef.current) {
+        console.warn('Admin: UI timeout triggered (15s)');
         setIsSubmitting(false);
-        console.warn('Submission timed out after 15 seconds');
-        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً. قد يكون هناك مشكلة في الاتصال. يرجى إعادة تحميل الصفحة والمحاولة مرة أخرى.');
+        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً جداً. يرجى محاولة تحديث الصفحة والتحقق من قائمة الوظائف.');
       }
     }, 15000);
 
     try {
-      console.log('Validating and preparing data...');
+      console.log('Admin: Preparing data...');
       
       let isoDate = new Date().toISOString();
       if (formData.createdAtManual) {
@@ -182,43 +182,48 @@ export default function Admin() {
       }
 
       const jobData = {
-        title: formData.title.trim(),
-        company: formData.company.trim(),
+        title: (formData.title || '').trim(),
+        company: (formData.company || '').trim(),
         category: formData.category,
-        location: formData.location.trim(),
-        externalLink: formData.externalLink.trim(),
-        image: formData.image.trim(),
-        description: formData.description.trim(),
+        location: (formData.location || 'المملكة العربية السعودية').trim(),
+        externalLink: (formData.externalLink || '').trim(),
+        image: (formData.image || '').trim(),
+        description: (formData.description || '').trim(),
         status: formData.status,
         createdAtManual: formData.createdAtManual,
         createdAtDate: isoDate
       };
 
+      console.log('Admin: Data prepared:', jobData);
+
       if (editingId) {
-        console.log('Updating existing job:', editingId);
+        console.log('Admin: Updating job ID:', editingId);
         await updateJob(editingId, jobData);
+        console.log('Admin: Update successful');
       } else {
-        console.log('Adding new job...');
+        console.log('Admin: Adding new job...');
         const newId = await addJob(jobData as any);
-        console.log('New job added with ID:', newId);
+        console.log('Admin: Add successful, new ID:', newId);
       }
       
       clearTimeout(submissionTimeout);
       setIsSubmitting(false); 
-      console.log('Submission successful!');
+      console.log('Admin: Flow complete, showing success message');
+      
       setSuccessMsg('🚀 تم نشر الوظيفة بنجاح وستظهر في الموقع الآن!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
       setTimeout(() => {
         handleReset();
         setSuccessMsg('');
+        console.log('Admin: Reset form after success');
       }, 3000);
 
     } catch (error: any) {
       clearTimeout(submissionTimeout);
-      console.error('CRITICAL SUBMISSION ERROR:', error);
-      alert('حدث خطأ أثناء النشر: ' + (error.message || 'يرجى المحاولة مرة أخرى'));
       setIsSubmitting(false);
+      console.error('Admin: Submission error caught:', error);
+      alert('حدث خطأ أثناء النشر: ' + (error.message || 'يرجى المحاولة مرة أخرى'));
     }
   };
 
