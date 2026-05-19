@@ -9,6 +9,17 @@ import { WhatsAppIcon, TikTokIcon } from './components/Icons';
 import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
+  
+  return null;
+}
+
 // Real Pages
 import Home from './pages/Home';
 import JobList from './pages/JobList';
@@ -24,14 +35,14 @@ function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="فرصتي" className="h-12 w-auto" onError={(e) => (e.currentTarget.style.display = 'none')} />
             <span className="text-2xl font-bold text-brand-black tracking-tight logo-text">فرصتي</span>
             <div className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse" />
           </Link>
 
           <div className="hidden lg:flex items-center gap-6">
-            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
+            <Link to="/" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
             <Link to="/jobs" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/jobs' ? 'text-brand-yellow' : 'text-gray-600'}`}>جميع الوظائف</Link>
             <Link to="/category/military" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>عسكرية</Link>
             <Link to="/category/company" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>الشركات</Link>
@@ -176,6 +187,7 @@ function CategoryWrapper() {
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen flex flex-col font-sans selection:bg-brand-yellow/30">
         <Routes>
           {/* Admin Routes - No Header/Footer */}
