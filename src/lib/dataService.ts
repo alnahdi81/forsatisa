@@ -8,7 +8,7 @@ const MOCK_JOBS: Job[] = [
     "location": "الرياض ، الخبر ، جدة",
     "externalLink": "https://www.linkedin.com/jobs/view/4243640263/?eBP=JOB_SEARCH_ORGANIC&refId=k%2FPh6yV%2Fv7y8yM4DORC4yg%3D%3D&trackingId=9T%2Byi6MvA9Xf6Ld9S6xJvA%3D%3D",
     "image": "https://upload.wikimedia.org/wikipedia/ar/archive/a/a2/20210403164132%21SNB_Logo.png",
-    "description": "يعلن البنك الأهلي السعودي عن توفر وظائف شاغرة في مجال إدارة علاقات العملاء (للشركات) لحملة البكالوريوس، للعمل في المدن التالية (الرياض، الخبر، جدة)، وذلك وفقاً للتفاصيل التالية.\n\n \n\nمسمى الوظيفة:\n\n- مدير علاقات العملاء (الشركات).\n\n \n\nالهدف من الوظيفة:\n\nتقديم خدمة عملاء ممتازة لعملاء الشركات وتحقيق أهداف محددة فيما يتعلق بجودة الائتمان، وإدارة الصفقات الجديدة، وتنمية محفظة الائتمان والتسويق المتبادل من خلال إقناع العملاء بالاستثمار يشمل قسم إدارة علاقات العملاء للشركات ما يلي: (الشركات التجارية, الخدمات المصرفية للشركات (الشركات المتوسطة), الشركات الكبيرة, الشركات العالمية).\n\n \n\nالمهام الوظيفية:\n\n\n- تمثيل البنك كجهة اتصال رئيسية لعملاء الشركات لمعالجة مخاوفهم واستفساراتهم.\n- الحفاظ على علاقات موثوقة مع العملاء على المستويات المناسبة من خلال تقديم خدمات موثوقة واستباقية وتطبيق المعرفة المصرفية بمهارة.\n- إدارة قاعدة عملاء حالية والبحث عن فرص سبل جديدة مع العملاء المؤسسيين بهدف تنمية قاعدة الأصول وفقًا لخطة العمل.\n- المساهمة في تحديد فرص التحسين المستمر لعمليات إدارة العملاء بهدف تحقيق تحسين الإنتاجية وخفض التكاليف.\n- إعداد بيانات بتقارير دقيقة وفي الوقت المناسب لتلبية المتطلبات التشغيلية والتجارية والسياسات والمعايير.\n- القيام بأي مهام أو واجبات أخرى ذات صلة حسب التوجيهات.\n\n\nالشروط:\n\n \n\n- أن يكون المتقدم سعودي الجنسية.\n- حاصل على درجة البكالوريوس في المالية أو المحاسبة أو إدارة الأعمال أو أي مجال ذي صلة.\n- خبره ذات صلة في مجال العمل المصرفي تتراوح بين سنتين وخمس سنوات.\n- مهارات تحليلية متخصصة في الائتمان المالية السوق.\n- فهم جيد لمخاطر الائتمان وإجراء التحليلات المالية.\n- يجيد قراءة الميزانية العمومية.\n- مهارات تفاوض متقدمة.\n- مهارات تواصل متقدمة.\n\n\nنبذة عن البنك:\n\n \n\nالبنك الأهلي السعودي هو أحد أكبر البنوك في المملكة العربية السعودية، تأسس عام 1953، ويقدم خدمات مصرفية وتمويلية للأفراد والشركات والاستثمار. تشكل البنك بشكله الحالي بعد اندماج البنك الأهلي التجاري مع مجموعة ساميا المالية عام 2021.\n\n \n\nالخبر مضاف بتاريخ اليوم الأثنين 1447/12/1هـ (الموافق 2026/5/18م)",
+    "description": "يعلن البنك الأهلي السعودي عن توفر وظائف شاغرة في مجال إدارة علاقات العملاء (للشركات) لحملة البكالوريوس، للعمل في المدن التالية (الرياض، الخبر، جدة)، وذلك وفقاً للتفاصيل التالية.\n\n \n\nمسمى الوظيفة:\n\n- مدير علاقات العملاء (الشركات).\n\n \n\nالهدف من الوظيفة:\n\nتقديم خدمة عملاء ممتازة لعملاء الشركات وتحقيق أهداف محددة فيما يتعلق بجودة الائتمان، وإدارة الصفقات الجديدة، وتنمية محفظة الائتمان والتسويق المتبادل من خلال إقناع العملاء بالاستثمار يشمل قسم إدارة علاقات العملاء للشركات ما يلي: (الشركات التجارية, الخدمات المصرفية للشركات (الشركات المتوسطة), الشركات الكبيرة, الشركات العالمية).\n\n \n\nالمهام الوظيفية:\n\n\n- تمثيل البنك كجهة اتصال رئيسية لعملاء الشركات لمعالجة مخاوفهم واستفساراتهم.\n- الحفاظ على علاقات موثوقة مع العملاء على المستويات المناسبة من خلال تقديم خدمات موثوقة واستباقية وتطبيق المعرفة المصافية بمهارة.\n- إدارة قاعدة عملاء حالية والبحث عن فرص سبل جديدة مع العملاء المؤسسيين بهدف تنمية قاعدة الأصول وفقًا لخطة العمل.\n- المساهمة في تحديد فرص التحسين المستمر لعمليات إدارة العملاء بهدف تحقيق تحسين الإنتاجية وخفض التكاليف.\n- إعداد بيانات بتقارير دقيقة وفي الوقت المناسب لتلبية المتطلبات التشغيلية والتجارية والسياسات والمعايير.\n- القيام بأي مهام أو واجبات أخرى ذات صلة حسب التوجيهات.\n\n\nالشروط:\n\n \n\n- أن يكون المتقدم سعودي الجنسية.\n- حاصل على درجة البكالوريوس في المالية أو المحاسبة أو إدارة الأعمال أو أي مجال ذي صلة.\n- خبره ذات صلة في مجال العمل المصرفي تتراوح بين سنتين وخمس سنوات.\n- مهارات تحليلية متخصصة في الائتمان المالية السوق.\n- فهم جيد لمخاطر الائتمان وإجراء التحليلات المالية.\n- يجيد قراءة الميزانية العمومية.\n- مهارات تفاوض متقدمة.\n- مهارات تواصل متقدمة.\n\n\nنبذة عن البنك:\n\n \n\nالبنك الأهلي السعودي هو أحد أكبر البنوك في المملكة العربية السعودية، تأسس عام 1953، ويقدم خدمات مصرفية وتمويلية للأفراد والشركات والاستثمار. تشكل البنك بشكله الحالي بعد اندماج البنك الأهلي التجاري مع مجموعة ساميا المالية عام 2021.\n\n \n\nالخبر مضاف بتاريخ اليوم الأثنين 1447/12/1هـ (الموافق 2026/5/18م)",
     "status": "active",
     "createdAtManual": "2026-05-19",
     "id": "52o7vmjvm",
@@ -52,6 +52,97 @@ const MOCK_JOBS: Job[] = [
     "createdAtManual": "2026-05-18",
     "id": "walaa-1",
     "createdAtDate": "2026-05-18T00:00:00.000Z"
+  },
+  {
+    "title": "شركة تطوير لخدمات النقل (رافد) تعلن عن فتح باب التقديم في (برنامج التدريب التعاوني 2026م)",
+    "company": "رافد",
+    "category": "company",
+    "location": "الرياض",
+    "externalLink": "https://www.linkedin.com/jobs/view/4243644026",
+    "image": "https://pbs.twimg.com/profile_images/1539209536894050304/m0rMvH4W_400x400.jpg",
+    "description": "تعلن شركة تطوير لخدمات النقل (رافد) عن فتح باب التقديم في (برنامج التدريب التعاوني) لعام 2026م، وذلك وفقاً للتفاصيل والشروط الآتية.",
+    "status": "active",
+    "createdAtManual": "2026-05-17",
+    "id": "rafed-1",
+    "createdAtDate": "2026-05-17T00:00:00.000Z"
+  },
+  {
+    "title": "بنك الرياض يعلن عن بدء التقديم في (برنامج التدريب الميداني 2026م) للجنسين",
+    "company": "بنك الرياض",
+    "category": "company",
+    "location": "كافة المناطق",
+    "externalLink": "https://www.riyadbank.com/ar/about-us/careers",
+    "image": "https://upload.wikimedia.org/wikipedia/ar/0/0b/%D8%B4%D8%B9%D8%A7%D8%B1_%D8%A8%D9%86%D9%83_%D8%A7%D9%84%D8%B1%D9%81%D8%A7%D8%B6.png",
+    "description": "يعلن بنك الرياض عن بدء التقديم في برنامج التدريب الميداني لعام 2026م في مختلف التخصصات.",
+    "status": "active",
+    "createdAtManual": "2026-05-16",
+    "id": "riyad-1",
+    "createdAtDate": "2026-05-16T00:00:00.000Z"
+  },
+  {
+    "title": "المركز الوطني (وقاء) يعلن عن وظائف شاغرة في مختلف مناطق المملكة",
+    "company": "وقاء",
+    "category": "government",
+    "location": "كافة المناطق",
+    "externalLink": "https://weqaa.gov.sa/",
+    "image": "https://pbs.twimg.com/profile_images/1454728514588725251/vY5Nq6i4_400x400.jpg",
+    "description": "تعلن هيئة وقاء عن توفر وظائف شاغرة لحملة مختلف المؤهلات العلمية.",
+    "status": "active",
+    "createdAtManual": "2026-05-15",
+    "id": "weqaa-1",
+    "createdAtDate": "2026-05-15T00:00:00.000Z"
+  },
+  {
+    "title": "شركة باب رزق جميل تعلن عن 150 وظيفة براتب يصل (6,000 ريال)",
+    "company": "باب رزق جميل",
+    "category": "company",
+    "location": "الرياض ، جدة ، الدمام",
+    "externalLink": "https://www.babrizqjameel.com/",
+    "image": "https://pbs.twimg.com/profile_images/1118128362547146752/F_m9_R_r_400x400.png",
+    "description": "تعلن شركة باب رزق جميل عن توفر 150 وظيفة شاغرة في عدة مدن بالمملكة.",
+    "status": "active",
+    "createdAtManual": "2026-05-14",
+    "id": "brj-1",
+    "createdAtDate": "2026-05-14T00:00:00.000Z"
+  },
+  {
+    "title": "شركة أمازون السعودية تعلن عن وظائف إدارية وتقنية وهندسية",
+    "company": "أمازون",
+    "category": "company",
+    "location": "الرياض ، جدة",
+    "externalLink": "https://www.amazon.jobs/en/locations/saudi-arabia",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg",
+    "description": "تعلن شركة أمازون عن توفر وظائف شاغرة في مكاتبها ومستودعاتها بالمملكة.",
+    "status": "active",
+    "createdAtManual": "2026-05-13",
+    "id": "amazon-1",
+    "createdAtDate": "2026-05-13T00:00:00.000Z"
+  },
+  {
+    "title": "شركة أرامكو السعودية تعلن عن فتح باب التقديم في برامج التدريب (جامعيين ودبلوم)",
+    "company": "أرامكو",
+    "category": "company",
+    "location": "الظهران ، جدة ، الرياض",
+    "externalLink": "https://www.aramco.com/ar/careers",
+    "image": "https://upload.wikimedia.org/wikipedia/ar/archive/a/a2/20140417011956%21Saudi_Aramco_logo.svg.png",
+    "description": "تعلن شركة أرامكو السعودية عن بدء التقديم في برامج التدريب التعاوني.",
+    "status": "active",
+    "createdAtManual": "2026-05-12",
+    "id": "aramco-1",
+    "createdAtDate": "2026-05-12T00:00:00.000Z"
+  },
+  {
+    "title": "مشروع نيوم يعلن عن وظائف شاغرة في مختلف التخصصات",
+    "company": "نيوم",
+    "category": "company",
+    "location": "نيوم ، تبوك",
+    "externalLink": "https://www.neom.com/ar-sa/be-part-of-neom",
+    "image": "https://upload.wikimedia.org/wikipedia/ar/e/e1/NEOM_Logo.png",
+    "description": "يعلن مشروع نيوم عن توفر مئات الفرص الوظيفية في مختلف القطاعات.",
+    "status": "active",
+    "createdAtManual": "2026-05-11",
+    "id": "neom-1",
+    "createdAtDate": "2026-05-11T00:00:00.000Z"
   }
 ];
 
@@ -59,13 +150,21 @@ export const getStoredJobs = (): Job[] => {
   const STORAGE_KEY = 'forsati_jobs';
   const saved = localStorage.getItem(STORAGE_KEY);
   
-  let jobs: Job[] = [];
+  const hardcodedJobs = MOCK_JOBS.map(j => {
+    const d = new Date(j.createdAtDate || Date.now());
+    return {
+      ...j,
+      createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+    };
+  });
+
+  let userJobs: Job[] = [];
 
   if (saved !== null) {
     try {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
-        jobs = parsed.map((j: any) => {
+        userJobs = parsed.map((j: any) => {
           let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
           if (typeof dateVal === 'object' && dateVal?.seconds) {
             dateVal = dateVal.seconds * 1000;
@@ -80,20 +179,16 @@ export const getStoredJobs = (): Job[] => {
     } catch (e) {
       console.error('Error parsing jobs', e);
     }
-  } 
-  
-  if (jobs.length === 0) {
-    // Initial load or if storage was cleared - use MOCK_JOBS
-    jobs = MOCK_JOBS.map(j => {
-      const d = new Date(j.createdAtDate || Date.now());
-      return {
-        ...j,
-        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-      };
-    });
   }
 
-  return jobs.sort((a, b) => {
+  // Combine both: hardcoded + user additions
+  // Use a Map to avoid duplicates by ID (if a user somehow adds a job that exists in MOCK_JOBS)
+  const allJobsMap = new Map<string, Job>();
+  
+  hardcodedJobs.forEach(j => allJobsMap.set(j.id, j));
+  userJobs.forEach(j => allJobsMap.set(j.id, j));
+
+  return Array.from(allJobsMap.values()).sort((a, b) => {
     const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
     const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
     return timeB - timeA;
