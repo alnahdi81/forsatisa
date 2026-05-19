@@ -139,6 +139,7 @@ function Footer() {
             <li><Link to="/contact" className="hover:text-brand-yellow">اتصل بنا</Link></li>
             <li><Link to="/privacy" className="hover:text-brand-yellow">سياسة الخصوصية</Link></li>
             <li><Link to="/terms" className="hover:text-brand-yellow">الشروط والأحكام</Link></li>
+            <li><Link to="/privacy-settings" className="hover:text-brand-yellow">إدارة إعدادات الخصوصية</Link></li>
           </ul>
         </div>
         <div className="p-4 bg-brand-yellow/10 rounded-2xl border border-brand-yellow/20">
