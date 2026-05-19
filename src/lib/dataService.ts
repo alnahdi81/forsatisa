@@ -116,7 +116,7 @@ export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string
     const jobsRef = collection(db, 'jobs');
     const docRef = await addDoc(jobsRef, {
       ...job,
-      createdAtDate: new Date().toISOString()
+      createdAtDate: job.createdAtDate || new Date().toISOString()
     });
     return docRef.id;
   } catch (error) {

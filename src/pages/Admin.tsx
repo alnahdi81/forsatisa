@@ -78,17 +78,22 @@ export default function Admin() {
 
   const handleAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
+    setSuccessMsg('');
+
     try {
       await saveAd(adFormData, editingId || undefined);
-      setAdFormData({ title: '', image: '', link: '', position: 'home_hero' });
-      setEditingId(null);
-      setShowForm(false);
-      setSuccessMsg('✅ تم نشر الإعلان بنجاح!');
+      setSuccessMsg('✅ تم حفظ التغييرات بنجاح!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => setSuccessMsg(''), 4000);
+      
+      setTimeout(() => {
+        handleReset();
+        setSuccessMsg('');
+      }, 3000);
     } catch (error) {
-      console.error(error);
+      console.error('Ad submission error:', error);
       alert('حدث خطأ أثناء حفظ الإعلان');
     } finally {
       setIsSubmitting(false);
@@ -131,27 +136,64 @@ export default function Admin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
+    setSuccessMsg(''); // Clear old messages
+    
+    console.log('Submission started...', editingId ? 'Updating' : 'Adding');
+
     try {
+      // Validate date
+      let isoDate = new Date().toISOString();
+      if (formData.createdAtManual) {
+        const d = new Date(formData.createdAtManual);
+        if (!isNaN(d.getTime())) {
+          isoDate = d.toISOString();
+        }
+      }
+
       if (editingId) {
         await updateJob(editingId, {
-          ...formData,
+          title: formData.title,
+          company: formData.company,
+          category: formData.category,
+          location: formData.location,
+          externalLink: formData.externalLink,
+          image: formData.image,
+          description: formData.description,
+          status: formData.status,
           createdAtManual: formData.createdAtManual,
-          createdAtDate: new Date(formData.createdAtManual).toISOString()
-        } as any);
+          createdAtDate: isoDate
+        });
+        console.log('Update successful');
       } else {
         await addJob({
-          ...formData,
+          title: formData.title,
+          company: formData.company,
+          category: formData.category,
+          location: formData.location,
+          externalLink: formData.externalLink,
+          image: formData.image,
+          description: formData.description,
+          status: formData.status,
           createdAtManual: formData.createdAtManual,
-          createdAtDate: new Date(formData.createdAtManual).toISOString()
+          createdAtDate: isoDate
         } as any);
+        console.log('Add successful');
       }
-      handleReset();
+      
       setSuccessMsg('🚀 تم نشر الوظيفة بنجاح وستظهر في الموقع الآن!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => setSuccessMsg(''), 5000);
+      
+      // Delay reset so they see the success message
+      setTimeout(() => {
+        handleReset();
+        setSuccessMsg('');
+      }, 4000);
+
     } catch (error: any) {
-      console.error(error);
+      console.error('Submission failed:', error);
       alert('حدث خطأ أثناء النشر: ' + (error.message || 'خطأ غير معروف'));
     } finally {
       setIsSubmitting(false);

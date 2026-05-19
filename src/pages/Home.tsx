@@ -20,10 +20,15 @@ export default function Home() {
     const unsubJobs = subscribeToJobs((data) => {
       setJobs(data);
       setLoading(false);
+    }, (err) => {
+      console.error('Job subscription error:', err);
+      setLoading(false); // Stop loading even on error
     });
     
     const unsubAds = subscribeToAds((data) => {
       setAds(data);
+    }, (err) => {
+      console.error('Ads subscription error:', err);
     });
 
     return () => {

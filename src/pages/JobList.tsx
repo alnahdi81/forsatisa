@@ -22,6 +22,9 @@ export default function JobList({ category }: { category?: string }) {
         setJobs(allJobs);
       }
       setLoading(false);
+    }, (err) => {
+      console.error('JobList subscription error:', err);
+      setLoading(false);
     });
 
     return () => unsub();
