@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { db, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { Job, Ad } from '../types';
+import { getStoredJobs, getStoredAds } from '../lib/dataService';
 import { MapPin, Building2, Calendar, Share2, ArrowRight, ExternalLink, ShieldCheck, Briefcase } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -12,52 +12,38 @@ export default function JobDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      if (!id) return;
-      try {
-        const docRef = doc(db, 'jobs', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data() as Job;
-          setJob({ id: docSnap.id, ...data } as Job);
-          const fullTitle = `فرصتي - ${data.title}`;
-          document.title = fullTitle;
-
-          // Update Meta Tags for Social Sharing
-          const updateMeta = (selector: string, content: string) => {
-            const el = document.querySelector(selector);
-            if (el) el.setAttribute('content', content);
-          };
-          updateMeta('meta[property="og:title"]', fullTitle);
-          updateMeta('meta[property="twitter:title"]', fullTitle);
-          updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${data.title} في ${data.company} عبر منصة فرصتي.`);
-          updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${data.title} في ${data.company} عبر منصة فرصتي.`);
-          if (data.image) {
-            updateMeta('meta[property="og:image"]', data.image);
-            updateMeta('meta[property="twitter:image"]', data.image);
-          }
-        }
-
-        // Fetch Job Detail Ad
-        const aq = query(collection(db, 'ads'), where('position', '==', 'job_detail'), limit(1));
-        const adSnap = await getDocs(aq);
-        if (!adSnap.empty) {
-          setAd({ id: adSnap.docs[0].id, ...adSnap.docs[0].data() } as Ad);
-        }
-      } catch (e) {
-        handleFirestoreError(e, OperationType.GET, `jobs/${id}`);
-      }
-      setLoading(false);
+    if (!id) return;
+    const allJobs = getStoredJobs();
+    const foundJob = allJobs.find(j => j.id === id);
+    if (foundJob) {
+      setJob(foundJob);
+      const fullTitle = `فرصتي - ${foundJob.title}`;
+      document.title = fullTitle;
+      
+      const updateMeta = (selector: string, content: string) => {
+        const el = document.querySelector(selector);
+        if (el) el.setAttribute('content', content);
+      };
+      updateMeta('meta[property="og:title"]', fullTitle);
+      updateMeta('meta[property="twitter:title"]', fullTitle);
+      updateMeta('meta[property="og:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} في ${foundJob.company} عبر منصة فرصتي.`);
+      updateMeta('meta[property="twitter:description"]', `شاهد أحدث تفاصيل وظيفة ${foundJob.title} في ${foundJob.company} عبر منصة فرصتي.`);
     }
-    fetchData();
+
+    const allAds = getStoredAds();
+    const jobAd = allAds.find(a => a.position === 'job_detail') || allAds.find(a => a.position === 'sidebar');
+    if (jobAd) setAd(jobAd);
+
+    setLoading(false);
   }, [id]);
 
   const categoryLabels: Record<string, string> = {
-    military: 'وظائف عسكرية',
+    military: 'عسكري',
     remote: 'عمل عن بعد',
-    company: 'وظائف شركات',
-    government: 'وظائف حكومية',
-    university: 'مواعيد جامعات',
+    company: 'شركات / خاص',
+    government: 'حكومي',
+    semi_government: 'شبه حكومي',
+    university: 'جامعات / تعليم',
     training: 'دورات تدريبية',
     employment_training: 'تدريب منتهي بالتوظيف',
   };
@@ -121,9 +107,9 @@ export default function JobDetail() {
                     'bg-red-50 text-red-600'
                   }`}>
                     <ShieldCheck size={10} />
-                    {job.status === 'active' ? 'نشط الآن' : 
+                    {job.status === 'active' ? 'نشط' : 
                      job.status === 'soon' ? 'قريباً' : 
-                     job.status === 'expiring' ? 'قارب على الانتهاء' : 
+                     job.status === 'expiring' ? 'ينتهي قريباً' : 
                      'منتهي'}
                   </span>
                 </div>
@@ -131,7 +117,15 @@ export default function JobDetail() {
                 <div className="flex flex-wrap gap-4 text-gray-500 text-sm">
                    <div className="flex items-center gap-1.5"><Building2 size={16} /> {job.company}</div>
                    <div className="flex items-center gap-1.5"><MapPin size={16} /> {job.location}</div>
-                   <div className="flex items-center gap-1.5"><Calendar size={16} /> {job.createdAt?.toDate().toLocaleDateString('ar-SA')}</div>
+                   <div className="flex items-center gap-1.5">
+                     <Calendar size={16} /> 
+                     {job.createdAt?.toDate ? (
+                       <>
+                         <span>{job.createdAt.toDate().toLocaleDateString('ar-SA', { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
+                         <span className="mr-0.5">هـ</span>
+                       </>
+                     ) : 'N/A'}
+                   </div>
                 </div>
               </div>
             </div>

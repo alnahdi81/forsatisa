@@ -1,797 +1,558 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { useNavigate } from 'react-router-dom';
-import { auth, db, googleProvider, Job, Ad, handleFirestoreError, OperationType } from '../lib/firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, signInWithEmailAndPassword } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, query, orderBy, where, onSnapshot } from 'firebase/firestore';
-import { LayoutDashboard, Plus, Trash2, Edit2, LogOut, LogIn, Image as ImageIcon, Briefcase, Megaphone, Check, Users, ShieldCheck, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Job, Ad } from '../types';
+import { getStoredJobs, getStoredAds, saveStoredAds } from '../lib/dataService';
 
 export default function Admin() {
-  const [user, loadingAuth] = useAuthState(auth);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'jobs' | 'ads' | 'subs' | 'admins'>('jobs');
+  const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'ads'>('jobs');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [ads, setAds] = useState<Ad[]>([]);
-  const [subs, setSubs] = useState<any[]>([]);
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [loadingData, setLoadingData] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
-  const clearRedirectTimer = () => {
-    if (redirectTimerRef.current) {
-      clearTimeout(redirectTimerRef.current);
-      redirectTimerRef.current = null;
-    }
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    sessionStorage.setItem('admin_logged_in', 'true');
   };
 
-  const SUPER_ADMIN_EMAIL = 'noamksa8@gmail.com';
-  const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
-
-  useEffect(() => {
-    // Handle redirect result
-    getRedirectResult(auth).catch(error => {
-      console.error("Redirect login error:", error);
-    });
-  }, []);
-
-  useEffect(() => {
-    let unsubscribe: () => void = () => {};
-    let isMounted = true;
-    
-    async function checkAdmin() {
-      // If we are still loading the initial auth state, just wait
-      if (loadingAuth) return;
-
-      if (!user) {
-        if (isMounted) {
-          setCheckingAdmin(false);
-          setIsUserAdmin(false);
-        }
-        return;
-      }
-      
-      // If we have a user, ensure we are in a checking state
-      if (isMounted) setCheckingAdmin(true);
-
-      if (isSuperAdmin) {
-        if (isMounted) {
-          setIsUserAdmin(true);
-          setCheckingAdmin(false);
-        }
-        return;
-      }
-
-      // Use a listener for real-time admin status
-      const q = query(collection(db, 'admins'), where('email', '==', user.email));
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!isMounted) return;
-        
-        const isAdmin = !snapshot.empty;
-        setIsUserAdmin(isAdmin);
-        setCheckingAdmin(false);
-      }, (error) => {
-        console.error("Admin check error:", error);
-        if (isMounted) {
-          setIsUserAdmin(false);
-          setCheckingAdmin(false);
-        }
-      });
-    }
-
-    checkAdmin();
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, [user, isSuperAdmin, loadingAuth]);
-
-  useEffect(() => {
-    document.title = "فرصتي - لوحة تحكم";
-    if (isUserAdmin) {
-      fetchData();
-    }
-  }, [isUserAdmin, activeTab]);
-
-  async function fetchData() {
-    setLoadingData(true);
-    try {
-      if (activeTab === 'jobs') {
-        const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        setJobs(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Job)));
-      } else if (activeTab === 'ads') {
-        const q = query(collection(db, 'ads'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        setAds(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Ad)));
-      } else if (activeTab === 'subs') {
-        const q = query(collection(db, 'subscriptions'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        setSubs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      } else if (activeTab === 'admins') {
-        const q = query(collection(db, 'admins'), orderBy('addedAt', 'desc'));
-        const snapshot = await getDocs(q);
-        setAdmins(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    setLoadingData(false);
-  }
-
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [useManual, setUseManual] = useState(false);
-  const [manualEmail, setManualEmail] = useState('');
-  const [manualPassword, setManualPassword] = useState('');
-
-  const login = async (method: 'popup' | 'redirect' | 'email' = 'popup') => {
-    if (loginLoading) return;
-    setLoginLoading(true);
-    clearRedirectTimer();
-    try {
-      if (method === 'email') {
-        if (!manualEmail || !manualPassword) {
-          alert("يرجى إدخال البريد وكلمة المرور");
-          setLoginLoading(false);
-          return;
-        }
-        await signInWithEmailAndPassword(auth, manualEmail, manualPassword);
-      } else {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ 
-          prompt: 'select_account'
-        });
-        
-        if (method === 'popup') {
-          await signInWithPopup(auth, provider);
-        } else {
-          await signInWithRedirect(auth, provider);
-        }
-      }
-    } catch (error: any) {
-      console.error("Login failure:", error);
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        // No action needed
-      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        alert("البريد أو كلمة المرور غير صحيحة. يرجى التأكد من التسجيل مسبقاً.");
-      } else {
-        alert("فشل تسجيل الدخول. يمكنك تجربة 'الطريقة البديلة' أو الدخول اليدوي.");
-      }
-    } finally {
-      setLoginLoading(false);
-    }
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    sessionStorage.removeItem('admin_logged_in');
   };
-  const logout = () => signOut(auth);
 
-  if (loadingAuth || checkingAdmin) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
-      <div className="text-gray-400 font-bold">جاري التحقق من الصلاحيات...</div>
-    </div>
-  );
-
-  if (!user) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-gray-100 text-center max-w-md w-full">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-brand-yellow/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShieldCheck size={40} className="text-brand-yellow" />
-          </div>
-          <h1 className="text-xl md:text-2xl font-bold mb-4">لوحة تحكم الإدارة</h1>
-          <p className="text-sm md:text-base text-gray-500 mb-8 leading-relaxed">يرجى تسجيل الدخول باستخدام حساب المشرف للوصول إلى أدوات الإدارة.</p>
-          
-          <div className="space-y-4">
-            {!useManual ? (
-              <>
-                <button 
-                  disabled={loginLoading}
-                  onClick={() => login('popup')} 
-                  className="w-full bg-brand-black text-white flex items-center justify-center gap-3 py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
-                  تسجيل الدخول (Google)
-                </button>
-                <div className="flex flex-col gap-2">
-                  <button 
-                    disabled={loginLoading}
-                    onClick={() => login('redirect')} 
-                    className="w-full bg-gray-50 text-gray-500 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all text-sm border border-gray-100"
-                  >
-                    طريقة بديلة (Redirect)
-                  </button>
-                  <button 
-                    onClick={() => setUseManual(true)} 
-                    className="w-full text-brand-yellow font-bold text-sm hover:underline py-2"
-                  >
-                    أو الدخول اليدوي (بريد وكلمة مرور)
-                  </button>
-                </div>
-              </>
-            ) : (
-              <form onSubmit={(e) => { e.preventDefault(); login('email'); }} className="space-y-4 text-right">
-                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100 mb-4">
-                  <p className="text-[10px] text-yellow-700 leading-relaxed font-medium">
-                    * تأكد من تفعيل "Email/Password" في Firebase وإضافة المستخدم يدوياً هناك ليعمل هذا الخيار.
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 mr-1">البريد الإلكتروني</label>
-                  <input 
-                    type="email" 
-                    value={manualEmail}
-                    onChange={(e) => setManualEmail(e.target.value)}
-                    placeholder="example@gmail.com"
-                    className="w-full px-5 py-3 rounded-xl border border-gray-100 focus:border-brand-yellow outline-none dir-ltr text-left font-medium"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 mr-1">كلمة المرور</label>
-                  <input 
-                    type="password" 
-                    value={manualPassword}
-                    onChange={(e) => setManualPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-5 py-3 rounded-xl border border-gray-100 focus:border-brand-yellow outline-none dir-ltr text-left font-medium"
-                    required
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  disabled={loginLoading}
-                  className="w-full bg-brand-black text-white py-3 md:py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-3"
-                >
-                  {loginLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <LogIn size={20} />}
-                  دخول الآن
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setUseManual(false)} 
-                  className="w-full text-gray-400 font-bold text-sm hover:text-gray-600"
-                >
-                  إلغاء والعودة لخيار جوجل
-                </button>
-              </form>
-            )}
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!isUserAdmin) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gray-100 text-center max-w-lg w-full">
-          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <X size={40} />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">الدخول مرفوض</h1>
-          <p className="text-gray-500 mb-8 leading-relaxed">
-            الحساب الحالي (<span className="font-bold text-brand-black">{user.email}</span>) لا يملك صلاحيات الوصول للوحة التحكم. 
-            يرجى التأكد من أنك تستخدم البريد الصحيح أو تواصل مع المالك.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <button onClick={logout} className="w-full bg-brand-black text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
-              <LogOut size={20} />
-              تسجيل الخروج
-            </button>
-            <button onClick={() => navigate('/')} className="w-full bg-gray-100 text-gray-700 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-all">
-              العودة للرئيسية
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 md:mb-12">
-        <div className="flex items-center gap-4">
-          <div className="bg-brand-black text-white p-3 rounded-2xl shrink-0">
-            <LayoutDashboard size={28} />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">لوحة التحكم</h1>
-            <p className="text-xs md:text-sm text-gray-500">مرحباً {user.displayName?.split(' ')[0]} ، إدارة بوابتك من هنا.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          {activeTab !== 'subs' && activeTab !== 'admins' && (
-            <button onClick={() => { setEditingItem(null); setShowModal(true); }} className="flex-1 md:flex-none justify-center bg-brand-yellow text-brand-black px-5 md:px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95 text-sm md:text-base">
-              <Plus size={18} />
-              إضافة {activeTab === 'jobs' ? 'وظيفة' : 'إعلان'}
-            </button>
-          )}
-          {activeTab === 'admins' && isSuperAdmin && (
-             <button onClick={() => { setEditingItem(null); setShowModal(true); }} className="flex-1 md:flex-none justify-center bg-brand-yellow text-brand-black px-5 md:px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95 text-sm md:text-base">
-              <Plus size={18} />
-              إضافة مشرف
-            </button>
-          )}
-          <button onClick={() => navigate('/')} title="العودة للرئيسية" className="p-3 bg-white border border-gray-100 shadow-sm rounded-xl text-gray-400 hover:text-brand-yellow hover:bg-yellow-50 transition-all shrink-0">
-            <Briefcase size={20} />
-          </button>
-          <button onClick={logout} title="تسجيل الخروج" className="p-3 bg-white border border-gray-100 shadow-sm rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all shrink-0">
-            <LogOut size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex gap-2 md:gap-4 mb-8 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-        {[
-          { id: 'jobs', label: 'الوظائف', icon: Briefcase },
-          { id: 'ads', label: 'الإعلانات', icon: Megaphone },
-          { id: 'subs', label: 'المشتركين', icon: Users },
-          ...(isSuperAdmin ? [{ id: 'admins', label: 'المشرفين', icon: ShieldCheck }] : []),
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold transition-all text-sm md:text-base whitespace-nowrap border ${activeTab === tab.id ? 'bg-brand-black text-white border-brand-black shadow-md' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}
-          >
-            <tab.icon size={18} />
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        {loadingData ? (
-          <div className="p-20 text-center text-gray-400 animate-pulse font-bold">جاري تحميل البيانات...</div>
-        ) : activeTab === 'subs' ? (
-          <div className="overflow-x-auto">
-             <table className="w-full text-right hidden md:table">
-              <thead className="bg-gray-50 text-gray-500 text-[10px] md:text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4 font-bold">البريد الإلكتروني</th>
-                  <th className="px-6 py-4 font-bold">تاريخ الاشتراك</th>
-                  <th className="px-6 py-4 font-bold text-left">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {subs.map(sub => (
-                   <tr key={sub.id}>
-                    <td className="px-6 py-4 font-bold text-sm">{sub.email}</td>
-                    <td className="px-6 py-4 text-xs text-gray-400">{sub.createdAt?.toDate?.().toLocaleString('ar-SA')}</td>
-                    <td className="px-6 py-4 text-left">
-                       <button onClick={() => handleDeleteSub(sub.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                    </td>
-                   </tr>
-                ))}
-              </tbody>
-             </table>
-             <div className="md:hidden divide-y divide-gray-50">
-                {subs.map(sub => (
-                  <div key={sub.id} className="p-4 flex justify-between items-center bg-white">
-                    <div>
-                      <div className="font-bold text-sm">{sub.email}</div>
-                      <div className="text-[10px] text-gray-400">{sub.createdAt?.toDate?.().toLocaleString('ar-SA')}</div>
-                    </div>
-                    <button onClick={() => handleDeleteSub(sub.id)} className="p-2 text-red-500 bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                  </div>
-                ))}
-             </div>
-          </div>
-        ) : activeTab === 'admins' ? (
-          <div className="flex flex-col">
-            {isSuperAdmin && (
-              <div className="p-6 border-b border-gray-50 bg-gray-50/30">
-                <div className="max-w-2xl">
-                  <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Plus size={16} className="text-brand-yellow" />
-                    إضافة مشرف جديد بشكل سريع
-                  </h3>
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    const form = e.target as HTMLFormElement;
-                    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-                    if (!email) return;
-                    try {
-                      await addDoc(collection(db, 'admins'), {
-                        email,
-                        name: email.split('@')[0],
-                        role: 'employee',
-                        addedAt: serverTimestamp()
-                      });
-                      form.reset();
-                      fetchData();
-                    } catch (err) {
-                      handleFirestoreError(err, OperationType.CREATE, 'admins');
-                    }
-                  }} className="flex flex-col md:flex-row gap-3">
-                    <input 
-                      name="email"
-                      type="email" 
-                      required 
-                      placeholder="أدخل بريد جوجل (Google Email)" 
-                      className="flex-1 px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow outline-none font-medium text-sm"
-                    />
-                    <button type="submit" className="bg-brand-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all text-sm whitespace-nowrap">
-                      إضافة الآن
-                    </button>
-                  </form>
-                  <p className="mt-2 text-[10px] text-gray-400 font-medium">* سيتم منح البريد المضاف صلاحية "موظف" تلقائياً.</p>
-                </div>
-              </div>
-            )}
-            <div className="overflow-x-auto">
-               <table className="w-full text-right hidden md:table">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4 font-bold">المشرف</th>
-                  <th className="px-6 py-4 font-bold">الصلاحية</th>
-                  <th className="px-6 py-4 font-bold text-left">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {admins.map(admin => (
-                   <tr key={admin.id}>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-sm">{admin.name || 'مشرف'}</div>
-                      <div className="text-xs text-gray-400">{admin.email}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${admin.role === 'owner' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                        {admin.role === 'owner' ? 'مالك' : 'موظف'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-left">
-                       <button onClick={() => handleDeleteAdmin(admin.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                    </td>
-                   </tr>
-                ))}
-              </tbody>
-             </table>
-             <div className="md:hidden divide-y divide-gray-50">
-                {admins.map(admin => (
-                  <div key={admin.id} className="p-4 flex justify-between items-center bg-white">
-                    <div className="space-y-1">
-                      <div className="font-bold text-sm">{admin.email}</div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${admin.role === 'owner' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                          {admin.role === 'owner' ? 'مالك' : 'موظف'}
-                        </span>
-                      </div>
-                    </div>
-                    <button onClick={() => handleDeleteAdmin(admin.id)} className="p-2 text-red-500 bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                  </div>
-                ))}
-             </div>
-           </div>
-         </div>
-       ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right hidden md:table">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4 font-bold">المحتوى</th>
-                  <th className="px-6 py-4 font-bold">الحالة</th>
-                  <th className="px-6 py-4 font-bold">التصنيف / الموقع</th>
-                  <th className="px-6 py-4 font-bold text-left">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {(activeTab === 'jobs' ? jobs : ads).map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 font-bold bg-white">
-                          {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-300" />}
-                        </div>
-                        <div className="max-w-xs">
-                          <div className="font-bold text-gray-900 truncate">{item.title}</div>
-                          <div className="text-xs text-gray-400 truncate">{activeTab === 'jobs' ? (item as Job).company : (item as Ad).position}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {activeTab === 'jobs' && (
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${(item as Job).status === 'active' ? 'bg-green-100 text-green-700' : (item as Job).status === 'soon' ? 'bg-blue-100 text-blue-700' : (item as Job).status === 'expiring' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
-                          {(item as Job).status === 'active' ? 'نشط' : (item as Job).status === 'soon' ? 'قريباً' : (item as Job).status === 'expiring' ? 'قارب على الانتهاء' : 'منتهي'}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-md font-medium text-gray-600">
-                        {activeTab === 'jobs' ? (item as Job).category : (item as Ad).position}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => { setEditingItem(item); setShowModal(true); }} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(item.id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {/* Mobile View for Jobs/Ads */}
-            <div className="md:hidden divide-y divide-gray-50">
-                {(activeTab === 'jobs' ? jobs : ads).map((item) => (
-                   <div key={item.id} className="p-4 flex flex-col gap-3 bg-white">
-                      <div className="flex items-center gap-3">
-                         <div className="w-12 h-12 rounded-lg bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100">
-                            {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-300" />}
-                         </div>
-                         <div className="flex-1 min-w-0">
-                            <div className="font-bold text-sm truncate">{item.title}</div>
-                            <div className="text-xs text-gray-400 truncate">{activeTab === 'jobs' ? (item as Job).company : (item as Ad).position}</div>
-                         </div>
-                         <div className="flex gap-1 shrink-0">
-                            <button onClick={() => { setEditingItem(item); setShowModal(true); }} className="p-2.5 text-blue-600 bg-blue-50 rounded-xl"><Edit2 size={16} /></button>
-                            <button onClick={() => handleDelete(item.id)} className="p-2.5 text-red-600 bg-red-50 rounded-xl"><Trash2 size={16} /></button>
-                         </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                         <div className="flex gap-2">
-                            {activeTab === 'jobs' && (
-                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${(item as Job).status === 'active' ? 'bg-green-100 text-green-700' : (item as Job).status === 'soon' ? 'bg-blue-100 text-blue-700' : (item as Job).status === 'expiring' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
-                                  {(item as Job).status === 'active' ? 'نشط' : (item as Job).status === 'soon' ? 'قريباً' : (item as Job).status === 'expiring' ? 'قارب على الانتهاء' : 'منتهي'}
-                               </span>
-                            )}
-                            <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-md text-gray-500 font-bold whitespace-nowrap">
-                               {activeTab === 'jobs' ? (item as Job).category : (item as Ad).position}
-                            </span>
-                         </div>
-                         <div className="text-[10px] text-gray-400 font-bold">{item.createdAt?.toDate?.().toLocaleDateString('ar-SA')}</div>
-                      </div>
-                   </div>
-                ))}
-            </div>
-
-            {(activeTab === 'jobs' ? jobs : ads).length === 0 && (
-              <div className="p-20 text-center text-gray-400 font-bold">لا يوجد بيانات حالياً</div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {showModal && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)} className="absolute inset-0 bg-brand-black/70 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }} className="relative bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="p-5 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg md:text-xl font-bold">
-                  {editingItem ? 'تعديل' : 'إضافة'} {activeTab === 'jobs' ? 'وظيفة' : activeTab === 'ads' ? 'إعلان' : 'مشرف'}
-                </h3>
-                <button onClick={() => setShowModal(false)} className="p-2 bg-white rounded-xl shadow-sm hover:text-red-500 transition-all active:scale-90"><X size={20} /></button>
-              </div>
-              <div className="p-5 md:p-6 overflow-y-auto space-y-6 scrollbar-hide no-scrollbar">
-                {activeTab === 'admins' ? (
-                  <AdminForm onSuccess={() => { setShowModal(false); fetchData(); }} />
-                ) : (
-                  <ItemForm 
-                    type={activeTab as 'jobs' | 'ads'} 
-                    initialData={editingItem} 
-                    onSuccess={() => { setShowModal(false); fetchData(); }} 
-                  />
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-
-  async function handleDelete(id: string) {
-    if (!confirm('هل أنت متأكد من الحذف؟')) return;
-    try {
-      await deleteDoc(doc(db, activeTab === 'jobs' ? 'jobs' : 'ads', id));
-      fetchData();
-    } catch (e) {
-      handleFirestoreError(e, OperationType.DELETE, `${activeTab}/${id}`);
-    }
-  }
-
-  async function handleDeleteSub(id: string) {
-    if (!confirm('سيتم حذف البريد من قائمة الاشتراكات، هل أنت متأكد؟')) return;
-    try {
-      await deleteDoc(doc(db, 'subscriptions', id));
-      fetchData();
-    } catch (e) {
-      handleFirestoreError(e, OperationType.DELETE, `subscriptions/${id}`);
-    }
-  }
-
-  async function handleDeleteAdmin(id: string) {
-    if (!confirm('هل أنت متأكد من سحب صلاحية هذا المشرف؟')) return;
-    try {
-      await deleteDoc(doc(db, 'admins', id));
-      fetchData();
-    } catch (e) {
-      handleFirestoreError(e, OperationType.DELETE, `admins/${id}`);
-    }
-  }
-}
-
-function ItemForm({ type, initialData, onSuccess }: { type: 'jobs' | 'ads', initialData?: any, onSuccess: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<any>(initialData || (type === 'jobs' ? {
+  const [formData, setFormData] = useState({
     title: '',
-    description: '',
     company: '',
-    category: 'military',
-    status: 'active',
-    location: '',
-    image: '',
+    category: 'government',
+    location: 'المملكة العربية السعودية',
     externalLink: '',
-  } : {
+    image: '',
+    description: '',
+    status: 'active' as Job['status'],
+    createdAtManual: new Date().toISOString().split('T')[0]
+  });
+
+  const [adFormData, setAdFormData] = useState<Omit<Ad, 'id'>>({
     title: '',
     image: '',
     link: '',
-    position: 'home_hero',
-  }));
+    position: 'home_hero'
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const data = { ...formData, createdAt: initialData ? initialData.createdAt : serverTimestamp() };
-      if (initialData) {
-        await updateDoc(doc(db, type === 'jobs' ? 'jobs' : 'ads', initialData.id), data);
-      } else {
-        await addDoc(collection(db, type === 'jobs' ? 'jobs' : 'ads'), data);
-      }
-      onSuccess();
-    } catch (e) {
-      handleFirestoreError(e, initialData ? OperationType.UPDATE : OperationType.CREATE, type);
+  useEffect(() => {
+    setJobs(getStoredJobs());
+    setAds(getStoredAds());
+    setIsLoading(false);
+  }, []);
+
+  const saveJobs = (updated: Job[]) => {
+    setJobs(updated);
+    // Sort and save
+    const dataToSave = updated.map(j => ({
+      ...j,
+      createdAtDate: j.createdAt?.toDate ? j.createdAt.toDate().toISOString() : (typeof j.createdAt === 'string' ? j.createdAt : (j.createdAtDate || new Date().toISOString()))
+    }));
+    localStorage.setItem('forsati_jobs', JSON.stringify(dataToSave));
+    setSuccessMsg('تم حفظ البيانات بنجاح!');
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleClearAll = () => {
+    if (window.confirm('هل أنت متأكد من حذف جميع البيانات (الوظائف والإعلانات) والعودة للإعدادات الافتراضية؟')) {
+      localStorage.removeItem('forsati_jobs');
+      localStorage.removeItem('forsati_ads');
+      localStorage.removeItem('jobs');
+      localStorage.removeItem('forsati-jobs');
+      localStorage.removeItem('all_jobs');
+      window.location.reload();
     }
-    setLoading(false);
-  }
+  };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">العنوان</label>
-        <input required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow font-medium" />
-      </div>
+  const handleAdSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newAd: Ad = {
+      ...adFormData,
+      id: editingId || Math.random().toString(36).substr(2, 9)
+    };
 
-      {type === 'jobs' && (
-        <>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700">نوع الجهة</label>
-              <select 
-                value={formData.company} 
-                onChange={e => setFormData({ ...formData, company: e.target.value })} 
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow"
-              >
-                <option value="">اختر نوع الجهة</option>
-                <option value="حكومية">حكومية</option>
-                <option value="شركات">شركات</option>
-                <option value="قطاع خاص">قطاع خاص</option>
-                <option value="شبه حكومية">شبه حكومية</option>
-                <option value="هيئة ومؤسسة عامة">هيئة ومؤسسة عامة</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700">الموقع</label>
-              <input value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700">التصنيف</label>
-              <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow">
-                <option value="military">وظائف عسكرية</option>
-                <option value="remote">عمل عن بعد</option>
-                <option value="company">وظائف شركات</option>
-                <option value="government">وظائف حكومية</option>
-                <option value="university">مواعيد الجامعات</option>
-                <option value="training">دورات تدريبية</option>
-                <option value="employment_training">تدريب منتهي بالتوظيف</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700">حالة الإعلان</label>
-              <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow">
-                <option value="active">نشط (مستمر)</option>
-                <option value="soon">قريباً</option>
-                <option value="expiring">قارب على الانتهاء</option>
-                <option value="expired">منتهي</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">الوصف التفصيلي</label>
-            <textarea required rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">رابط التقديم الخارجي</label>
-            <input value={formData.externalLink} onChange={e => setFormData({ ...formData, externalLink: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow" />
-          </div>
-        </>
-      )}
+    let updated;
+    if (editingId) {
+      updated = ads.map(a => a.id === editingId ? newAd : a);
+    } else {
+      updated = [newAd, ...ads];
+    }
 
-      {type === 'ads' && (
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-gray-700">مكان الإعلان</label>
-          <select value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow">
-            <option value="home_hero">الرئيسية (أعلى)</option>
-            <option value="sidebar">القائمة الجانبية</option>
-            <option value="job_detail">صفحة تفاصيل الوظيفة</option>
-          </select>
-        </div>
-      )}
+    setAds(updated);
+    saveStoredAds(updated);
+    setAdFormData({ title: '', image: '', link: '', position: 'home_hero' });
+    setEditingId(null);
+    setShowForm(false);
+    setSuccessMsg('تم حفظ الإعلان بنجاح!');
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
 
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">رابط الصورة (URL)</label>
-        <input value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow placeholder:text-gray-300" placeholder="https://example.com/image.jpg" />
-      </div>
+  const handleReset = () => {
+    setFormData({
+      title: '',
+      company: '',
+      category: 'government',
+      location: 'المملكة العربية السعودية',
+      externalLink: '',
+      image: '',
+      description: '',
+      status: 'active',
+      createdAtManual: new Date().toISOString().split('T')[0]
+    });
+    setAdFormData({
+      title: '',
+      image: '',
+      link: '',
+      position: 'home_hero'
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
 
-      {type === 'ads' && (
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-gray-700">رابط الإعلان (Target URL)</label>
-          <input value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow" placeholder="https://..." />
-        </div>
-      )}
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Create a vanilla object that we can safely serialize
+    const jobData: any = {
+      ...formData,
+      id: editingId || Math.random().toString(36).substr(2, 9),
+    };
 
-      <button disabled={loading} type="submit" className="w-full bg-brand-yellow text-brand-black py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:shadow-xl transition-all disabled:opacity-50">
-        {loading ? 'جاري الحفظ...' : (initialData ? 'تحديث البيانات' : 'إضافة الآن')}
-        {!loading && <Check size={20} />}
-      </button>
-    </form>
+    // Store the date as a property we can use later to reconstruct toDate()
+    jobData.createdAtDate = new Date(formData.createdAtManual).toISOString();
+
+    let updated;
+    if (editingId) {
+      updated = jobs.map(j => j.id === editingId ? {
+        ...jobData,
+        createdAt: { toDate: () => new Date(jobData.createdAtDate) }
+      } : j);
+    } else {
+      const newJob = {
+        ...jobData,
+        createdAt: { toDate: () => new Date(jobData.createdAtDate) }
+      };
+      updated = [newJob, ...jobs];
+    }
+    
+    saveJobs(updated as Job[]);
+    handleReset();
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه الوظيفة؟')) {
+      const updated = jobs.filter(j => j.id !== id);
+      saveJobs(updated);
+    }
+  };
+
+  const handleEdit = (job: Job) => {
+    setFormData({
+      title: job.title,
+      company: job.company,
+      category: job.category,
+      location: job.location || 'المملكة العربية السعودية',
+      externalLink: job.externalLink,
+      image: job.image || '',
+      description: job.description,
+      status: job.status,
+      createdAtManual: job.createdAt?.toDate ? job.createdAt.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    });
+    setEditingId(job.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
+    </div>
   );
-}
 
-function AdminForm({ onSuccess }: { onSuccess: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<'owner' | 'employee'>('employee');
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await addDoc(collection(db, 'admins'), {
-        email,
-        name,
-        role,
-        addedAt: serverTimestamp()
-      });
-      onSuccess();
-    } catch (e) {
-      handleFirestoreError(e, OperationType.CREATE, 'admins');
-    }
-    setLoading(false);
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans" dir="rtl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 w-full max-w-md text-center">
+          <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-yellow/20">
+            <ShieldCheck size={40} className="text-brand-black" />
+          </div>
+          <h1 className="text-2xl font-black mb-2">لوحة تحكم منصة فرصتي</h1>
+          <p className="text-gray-400 mb-8 font-medium">سجل دخولك لإدارة المحتوى والوظائف</p>
+            <button 
+            onClick={handleLogin}
+            className="w-full bg-brand-black text-white py-5 rounded-2xl font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
+          >
+            دخول مباشر للنظام
+          </button>
+          <button onClick={() => navigate('/')} className="mt-8 text-gray-400 font-bold hover:text-brand-black transition-colors">العودة للرئيسية</button>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">البريد الإلكتروني (جوجل)</label>
-        <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow font-medium" placeholder="example@gmail.com" />
+    <div className="min-h-screen bg-gray-50/50 font-sans pb-20" dir="rtl">
+      {/* Top Navbar */}
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center">
+              <Briefcase size={20} className="text-brand-black" />
+            </div>
+            <h1 className="text-xl font-black">إدارة الوظائف</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/"
+              className="bg-gray-100 text-gray-600 px-4 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-200 transition-all"
+            >
+              <ExternalLink size={18} />
+              <span className="hidden md:inline">عرض الموقع</span>
+            </Link>
+            <button 
+              onClick={() => setShowForm(!showForm)}
+              className="bg-brand-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-800 transition-all shadow-lg shadow-black/10"
+            >
+              <Plus size={20} />
+              <span className="hidden md:inline">{showForm ? 'إغلاق النموذج' : 'إضافة وظيفة جديدة'}</span>
+            </button>
+            <button 
+              onClick={handleClearAll}
+              className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all ml-2"
+              title="مسح كافة البيانات وإعادة التعيين"
+            >
+              <Trash2 size={20} />
+            </button>
+            <button onClick={handleLogout} className="p-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-4 mt-6">
+        <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit mb-8">
+           <button 
+             onClick={() => { setActiveTab('jobs'); setShowForm(false); }}
+             className={`px-8 py-3 rounded-xl font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-brand-black shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+           >
+             الوظائف
+           </button>
+           <button 
+             onClick={() => { setActiveTab('ads'); setShowForm(false); }}
+             className={`px-8 py-3 rounded-xl font-bold transition-all ${activeTab === 'ads' ? 'bg-white text-brand-black shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+           >
+             الإعلانات البنرات
+           </button>
+        </div>
+
+        <AnimatePresence>
+          {successMsg && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 bg-green-50 text-green-600 px-6 py-4 rounded-2xl font-bold border border-green-100 flex items-center justify-center gap-2">
+               <CheckCircle size={20} />
+               {successMsg}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showForm && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-10"
+            >
+              {activeTab === 'jobs' ? (
+                <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                  {/* ... Existing Job Form ... */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-yellow/5 rounded-full -mr-16 -mt-16"></div>
+                  
+                  <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
+                    <div className="w-2 h-8 bg-brand-yellow rounded-full"></div>
+                    {editingId ? 'تعديل بيانات الوظيفة' : 'إدخال وظيفة جديدة'}
+                  </h2>
+
+                  <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">مسمى الوظيفة (الاسم)</label>
+                        <div className="relative">
+                          <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12" placeholder="مثال: جندي - مهندس نظم" />
+                          <Briefcase className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">نوع الجهة (قطاع التوظيف)</label>
+                        <div className="relative">
+                          <select required value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12 appearance-none">
+                              <option value="">اخترالقطاع...</option>
+                              <option value="حكومي">حكومي</option>
+                              <option value="عسكري">عسكري</option>
+                              <option value="شبه حكومي">شبه حكومي</option>
+                              <option value="شركات">شركات / خاص</option>
+                              <option value="جامعات">جامعات / تعليم</option>
+                              <option value="مركز تدريب">مركز تدريب</option>
+                          </select>
+                          <Building2 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">التصنيف (النوع)</label>
+                          <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold">
+                            <option value="government">حكومي</option>
+                            <option value="military">عسكري</option>
+                            <option value="semi_government">شبه حكومي</option>
+                            <option value="company">شركات / خاص</option>
+                            <option value="remote">عمل عن بعد</option>
+                            <option value="university">جامعات / تعليم</option>
+                            <option value="training">دورات تدريبية</option>
+                            <option value="employment_training">تدريب منتهي بالتوظيف</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">الحالة</label>
+                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as Job['status']})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold">
+                            <option value="active">نشط ✅</option>
+                            <option value="expiring">ينتهي قريباً ⏳</option>
+                            <option value="soon">قريباً 🔔</option>
+                            <option value="expired">منتهي ⛔</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">تاريخ النشر</label>
+                        <div className="relative">
+                          <input type="date" value={formData.createdAtManual} onChange={e => setFormData({...formData, createdAtManual: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12" />
+                          <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">رابط الصورة (اختياري)</label>
+                        <div className="relative">
+                          <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12 dir-ltr text-right" placeholder="https://image-url..." />
+                          <ImageIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">رابط التقديم</label>
+                        <div className="relative">
+                          <input required value={formData.externalLink} onChange={e => setFormData({...formData, externalLink: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12 dir-ltr text-right" placeholder="https://apply-link..." />
+                          <LinkIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-black text-gray-400 mr-2">وصف الوظيفة والشروط</label>
+                      <div className="relative">
+                        <textarea rows={5} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow focus:bg-white outline-none transition-all font-bold pr-12" placeholder="اكتب تفاصيل الوظيفة هنا..."></textarea>
+                        <Info className="absolute right-4 top-6 text-gray-300" size={20} />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button type="submit" className="flex-1 bg-brand-black text-white py-5 rounded-2xl font-black text-lg hover:bg-gray-800 transition-all shadow-xl shadow-black/20">
+                        {editingId ? 'تحديث البيانات 💾' : 'نشر الوظيفة الآن 🚀'}
+                      </button>
+                      <button type="button" onClick={handleReset} className="px-10 bg-gray-100 text-gray-500 font-bold rounded-2xl hover:bg-gray-200 transition-all">
+                        إلغاء
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-100 shadow-xl relative overflow-hidden">
+                   <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
+                    <div className="w-2 h-8 bg-brand-yellow rounded-full"></div>
+                    {editingId ? 'تعديل الإعلان' : 'إضافة إعلان بنر جديد'}
+                  </h2>
+                  <form onSubmit={handleAdSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">عنوان الإعلان</label>
+                        <input required value={adFormData.title} onChange={e => setAdFormData({...adFormData, title: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow outline-none font-bold" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-400 mr-2">المكان</label>
+                        <select value={adFormData.position} onChange={e => setAdFormData({...adFormData, position: e.target.value as Ad['position']})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow outline-none font-bold">
+                           <option value="home_hero">أسفل الهيدر (رئيسي)</option>
+                           <option value="sidebar">وسط الصفحة</option>
+                           <option value="job_detail">صفحة تفاصيل الوظيفة</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-sm font-black text-gray-400 mr-2">رابط صورة البنر</label>
+                       <input required value={adFormData.image} onChange={e => setAdFormData({...adFormData, image: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow outline-none font-bold dir-ltr text-right" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-sm font-black text-gray-400 mr-2">الرابط عند الضغط</label>
+                       <input required value={adFormData.link} onChange={e => setAdFormData({...adFormData, link: e.target.value})} className="w-full bg-gray-50 px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand-yellow outline-none font-bold dir-ltr text-right" />
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button type="submit" className="flex-1 bg-brand-black text-white py-5 rounded-2xl font-black text-lg hover:bg-gray-800 transition-all shadow-xl shadow-black/20">
+                        {editingId ? 'حفظ التعديلات' : 'إضافة الإعلان'}
+                      </button>
+                      <button type="button" onClick={handleReset} className="px-10 bg-gray-100 text-gray-500 font-bold rounded-2xl hover:bg-gray-200 transition-all">
+                        إلغاء
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {activeTab === 'jobs' ? (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">إجمالي الوظائف</p>
+                  <h3 className="text-3xl font-black">{jobs.length}</h3>
+               </div>
+               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">الوظائف النشطة</p>
+                  <h3 className="text-3xl font-black text-green-500">{jobs.filter(j => j.status === 'active').length}</h3>
+               </div>
+               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">تنتهي قريباً</p>
+                  <h3 className="text-3xl font-black text-orange-500">{jobs.filter(j => j.status === 'expiring').length}</h3>
+               </div>
+               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">التفاعل</p>
+                  <h3 className="text-3xl font-black">100%</h3>
+               </div>
+            </div>
+
+            {/* List View */}
+            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-right border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/80 border-b border-gray-100">
+                      <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-widest">الوظيفة</th>
+                      <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-widest">الحالة</th>
+                      <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-widest">التاريخ</th>
+                      <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-widest text-left">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {jobs.map(job => (
+                      <tr key={job.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                              {job.image ? <img src={job.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <Building2 size={20} className="text-gray-300" />}
+                            </div>
+                            <div>
+                              <div className="font-black text-brand-black">{job.title}</div>
+                              <div className="text-xs text-gray-400 font-bold">{job.company}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase ${
+                            job.status === 'active' ? 'bg-green-50 text-green-600' :
+                            job.status === 'expiring' ? 'bg-orange-50 text-orange-600' :
+                            job.status === 'soon' ? 'bg-blue-50 text-blue-600' :
+                            'bg-red-50 text-red-600'
+                          }`}>
+                            {job.status === 'active' ? 'نشط' : job.status === 'soon' ? 'قريباً' : job.status === 'expiring' ? 'ينتهي قريباً' : 'منتهي'}
+                          </span>
+                        </td>
+                        <td className="px-8 py-6 text-gray-400 text-sm font-bold">
+                          {job.createdAt?.toDate ? job.createdAt.toDate().toLocaleDateString('ar-SA') : 'N/A'}
+                        </td>
+                        <td className="px-8 py-6 text-left">
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => handleEdit(job)}
+                              className="p-2.5 bg-gray-50 text-gray-500 hover:bg-brand-yellow/10 hover:text-brand-yellow rounded-xl transition-all"
+                            >
+                              <Plus size={18} className="rotate-45" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(job.id)}
+                              className="p-2.5 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {ads.map(ad => (
+              <div key={ad.id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group relative">
+                 <div className="aspect-[2/1] relative">
+                    <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
+                       <button 
+                         onClick={() => {
+                           setEditingId(ad.id);
+                           setAdFormData({ title: ad.title, image: ad.image, link: ad.link, position: ad.position });
+                           setShowForm(true);
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                         }}
+                         className="p-3 bg-white rounded-xl text-brand-black hover:scale-110 transition-all"
+                       >
+                         <Plus className="rotate-45" size={20} />
+                       </button>
+                       <button 
+                         onClick={() => {
+                           if(window.confirm('حذف الإعلان؟')) {
+                             const updated = ads.filter(a => a.id !== ad.id);
+                             setAds(updated);
+                             saveStoredAds(updated);
+                           }
+                         }}
+                         className="p-3 bg-red-500 rounded-xl text-white hover:scale-110 transition-all"
+                       >
+                         <Trash2 size={20} />
+                       </button>
+                    </div>
+                 </div>
+                 <div className="p-5">
+                    <div className="text-[10px] font-black text-brand-yellow uppercase mb-1">{ad.position}</div>
+                    <h3 className="font-bold text-lg">{ad.title}</h3>
+                    <p className="text-xs text-gray-400 truncate mt-1">{ad.link}</p>
+                 </div>
+              </div>
+            ))}
+            <button 
+              onClick={() => { setEditingId(null); setShowForm(true); }}
+              className="aspect-[2/1] rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-brand-yellow hover:bg-brand-yellow/5 transition-all"
+            >
+               <Plus size={32} />
+               <span className="font-bold mt-2">إضافة بنر جديد</span>
+            </button>
+          </div>
+        )}
       </div>
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">الاسم</label>
-        <input required value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow font-medium" />
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">الصلاحية</label>
-        <select value={role} onChange={e => setRole(e.target.value as any)} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-yellow">
-           <option value="employee">موظف (إدارة الوظائف والإعلانات)</option>
-           <option value="owner">شريك (كامل الصلاحيات)</option>
-        </select>
-      </div>
-      <button disabled={loading} type="submit" className="w-full bg-brand-yellow text-brand-black py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:shadow-xl transition-all disabled:opacity-50">
-        {loading ? 'جاري الإضافة...' : 'إضافة مشرف الآن'}
-        {!loading && <ShieldCheck size={20} />}
-      </button>
-    </form>
-  )
+    </div>
+  );
 }

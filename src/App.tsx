@@ -6,10 +6,8 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from 'react-router-dom';
 import { Menu, X, Instagram, Send } from 'lucide-react';
 import { WhatsAppIcon, TikTokIcon } from './components/Icons';
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from './lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Real Pages
 import Home from './pages/Home';
@@ -26,21 +24,27 @@ function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2">
             <img src="/logo.png" alt="فرصتي" className="h-12 w-auto" onError={(e) => (e.currentTarget.style.display = 'none')} />
             <span className="text-2xl font-bold text-brand-black tracking-tight logo-text">فرصتي</span>
             <div className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse" />
           </Link>
 
           <div className="hidden lg:flex items-center gap-6">
-            <Link to="/" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
+            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/' ? 'text-brand-yellow' : 'text-gray-600'}`}>الرئيسية</Link>
             <Link to="/jobs" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/jobs' ? 'text-brand-yellow' : 'text-gray-600'}`}>جميع الوظائف</Link>
             <Link to="/category/military" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/military' ? 'text-brand-yellow' : 'text-gray-600'}`}>عسكرية</Link>
             <Link to="/category/company" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/company' ? 'text-brand-yellow' : 'text-gray-600'}`}>الشركات</Link>
             <Link to="/category/government" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/government' ? 'text-brand-yellow' : 'text-gray-600'}`}>حكومية</Link>
-            <Link to="/category/remote" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/remote' ? 'text-brand-yellow' : 'text-gray-600'}`}>عن بعد</Link>
-            <Link to="/category/university" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/university' ? 'text-brand-yellow' : 'text-gray-600'}`}>الجامعات</Link>
-            <Link to="/category/training" className={`text-[13px] font-bold hover:text-brand-yellow transition-all ${location.pathname === '/category/training' ? 'text-brand-yellow' : 'text-gray-600'}`}>دورات</Link>
+            <div className="w-[1px] h-4 bg-gray-200 mx-2" />
+            <div className="flex items-center gap-3">
+              <a href="https://t.me/forsatisa" target="_blank" rel="noopener noreferrer" className="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+                <Send size={16} />
+              </a>
+              <a href="https://whatsapp.com/channel/0029VbCskOYIyPtQBcMUOm3t" target="_blank" rel="noopener noreferrer" className="p-1.5 bg-green-50 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-sm">
+                <WhatsAppIcon size={16} />
+              </a>
+            </div>
             <a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-brand-black bg-brand-yellow px-3 py-1.5 rounded-lg hover:bg-brand-black hover:text-white transition-all shadow-sm">إنشاء سيرة ذاتية</a>
           </div>
 
@@ -91,16 +95,8 @@ function Footer() {
   const handleSubscribe = async (e: FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    try {
-      await addDoc(collection(db, 'subscriptions'), {
-        email,
-        createdAt: serverTimestamp()
-      });
-      setSubscribed(true);
-      setEmail('');
-    } catch (err) {
-      console.error(err);
-    }
+    setSubscribed(true);
+    setEmail('');
   };
 
   return (

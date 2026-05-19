@@ -2,5 +2,5 @@
   "name": "فرصتي .. نحو النجاح",
   "description": "منصة رائدة للبحث عن الوظائف في السعودية، تشمل الوظائف العسكرية، الحكومية، والقطاع الخاص، بالإضافة إلى وظائف العمل عن بعد.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

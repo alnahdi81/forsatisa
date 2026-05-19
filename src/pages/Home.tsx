@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { db, Job, Ad } from '../lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
+import { Job, Ad } from '../types';
+import { getStoredJobs, getStoredAds } from '../lib/dataService';
 import JobCard from '../components/JobCard';
 import { Search, Briefcase, Users, Building, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -16,33 +16,12 @@ export default function Home() {
     const defaultTitle = "فرصتي .. نحو النجاح";
     document.title = defaultTitle;
     
-    // Reset Meta Tags
-    const updateMeta = (selector: string, content: string) => {
-      const el = document.querySelector(selector);
-      if (el) el.setAttribute('content', content);
-    };
-    updateMeta('meta[property="og:title"]', defaultTitle);
-    updateMeta('meta[property="twitter:title"]', defaultTitle);
-    updateMeta('meta[property="og:description"]', "فرصتي .. نحو النجاح، بوابتك للبحث عن أحدث الوظائف الشاغرة في المملكة العربية السعودية.");
-    updateMeta('meta[property="twitter:description"]', "فرصتي .. نحو النجاح، بوابتك للبحث عن أحدث الوظائف الشاغرة في المملكة العربية السعودية.");
+    // ... meta updates ...
     
-    // Jobs listener
-    const jq = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'), limit(12));
-    const unsubscribeJobs = onSnapshot(jq, (snapshot) => {
-      setJobs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job)));
-    });
-
-    // Ads listener
-    const aq = query(collection(db, 'ads'), orderBy('createdAt', 'desc'));
-    const unsubscribeAds = onSnapshot(aq, (snapshot) => {
-      setAds(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ad)));
-      setLoading(false);
-    });
-
-    return () => {
-      unsubscribeJobs();
-      unsubscribeAds();
-    };
+    // Load local jobs and ads
+    setJobs(getStoredJobs());
+    setAds(getStoredAds());
+    setLoading(false);
   }, []);
 
   const stats = [
@@ -53,8 +32,8 @@ export default function Home() {
   ];
 
   const filteredJobs = jobs.filter(job => 
-    job.title.toLowerCase().includes(search.toLowerCase()) || 
-    job.company?.toLowerCase().includes(search.toLowerCase())
+    (job.title?.toLowerCase() || '').includes(search.toLowerCase()) || 
+    (job.company?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
@@ -115,8 +94,61 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Hero Ads */}
+      {ads.filter(a => a.position === 'home_hero').length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mt-8">
+          <div className="space-y-4">
+            {ads.filter(a => a.position === 'home_hero').map(ad => (
+              <motion.a 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                key={ad.id} 
+                href={ad.link} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block w-full overflow-hidden rounded-[2rem] shadow-xl border border-gray-100 hover:shadow-2xl transition-all"
+              >
+                <img src={ad.image} alt={ad.title} className="w-full h-auto" referrerPolicy="no-referrer" />
+              </motion.a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Categories Grid */}
+      <section className="max-w-7xl mx-auto px-4 mt-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          {[
+            { label: 'عسكرية', path: 'military', color: 'bg-red-50 text-red-600' },
+            { label: 'حكومية', path: 'government', color: 'bg-blue-50 text-blue-600' },
+            { label: 'شركات', path: 'company', color: 'bg-orange-50 text-orange-600' },
+            { label: 'عن بعد', path: 'remote', color: 'bg-green-50 text-green-600' },
+            { label: 'جامعات', path: 'university', color: 'bg-purple-50 text-purple-600' },
+            { label: 'دورات', path: 'training', color: 'bg-cyan-50 text-cyan-600' },
+            { label: 'تدريب', path: 'employment_training', color: 'bg-pink-50 text-pink-600' },
+          ].map((cat, i) => (
+            <motion.div
+              key={cat.path}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+            >
+              <Link 
+                to={`/category/${cat.path}`}
+                className={`flex flex-col items-center justify-center p-6 rounded-3xl border border-gray-50 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 ${cat.color} group`}
+              >
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                   <Briefcase size={24} />
+                </div>
+                <span className="font-black text-sm">{cat.label}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Stats */}
-      <section className="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
+      <section className="max-w-7xl mx-auto px-4 mt-8 relative z-20">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
             <motion.div 
@@ -174,19 +206,6 @@ export default function Home() {
                 <p className="text-gray-500">حاول البحث بكلمات مختلفة أو تصفح الأقسام الأخرى.</p>
               </div>
             )}
-          </div>
-        )}
-      </section>
-
-      {/* Ad Section */}
-      <section className="max-w-7xl mx-auto px-4 pb-20">
-        {ads.find(a => a.position === 'home_hero') ? (
-           <a href={ads.find(a => a.position === 'home_hero')?.link} target="_blank" rel="noopener noreferrer" className="block w-full overflow-hidden rounded-3xl shadow-lg border border-gray-100">
-             <img src={ads.find(a => a.position === 'home_hero')?.image} alt="Ad" className="w-full h-auto" />
-           </a>
-        ) : (
-          <div className="w-full aspect-[4/1] md:aspect-[10/1] bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex items-center justify-center text-gray-400 group hover:border-brand-yellow/30 hover:bg-brand-yellow/5 transition-all">
-            <p className="text-sm font-medium">مساحة إعلانية - AdSpace</p>
           </div>
         )}
       </section>

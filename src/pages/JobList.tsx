@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { db, Job, JobCategory } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+import { Job, JobCategory } from '../types';
+import { getStoredJobs } from '../lib/dataService';
 import JobCard from '../components/JobCard';
-import { Search, Filter, Briefcase, ChevronRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Search, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function JobList({ category }: { category?: string }) {
@@ -15,16 +14,13 @@ export default function JobList({ category }: { category?: string }) {
     const title = category ? `فرصتي - ${categoryLabels[category]}` : "فرصتي - جميع الوظائف";
     document.title = title;
     
-    let q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+    const allJobs = getStoredJobs();
     if (category) {
-      q = query(collection(db, 'jobs'), where('category', '==', category), orderBy('createdAt', 'desc'));
+      setJobs(allJobs.filter(j => j.category === category));
+    } else {
+      setJobs(allJobs);
     }
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const jobsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
-      setJobs(jobsData);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    setLoading(false);
   }, [category]);
 
   const categoryLabels: Record<string, string> = {
@@ -38,8 +34,8 @@ export default function JobList({ category }: { category?: string }) {
   };
 
   const filteredJobs = jobs.filter(job => 
-    job.title.toLowerCase().includes(search.toLowerCase()) || 
-    job.company?.toLowerCase().includes(search.toLowerCase())
+    (job.title?.toLowerCase() || '').includes(search.toLowerCase()) || 
+    (job.company?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
