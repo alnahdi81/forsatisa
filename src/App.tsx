@@ -73,13 +73,13 @@ function Navbar() {
             <Link onClick={() => setIsOpen(false)} to="/" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">الرئيسية</Link>
             <Link onClick={() => setIsOpen(false)} to="/jobs" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">جميع الوظائف</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/military" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">وظائف عسكرية</Link>
-            <Link onClick={() => setIsOpen(false)} to="/category/company" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">وظائف الشركات</Link>
-            <Link onClick={() => setIsOpen(false)} to="/category/government" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">وظائف حكومية</Link>
-            <Link onClick={() => setIsOpen(false)} to="/category/remote" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">عن بعد</Link>
+            <Link onClick={() => setIsOpen(false)} to="/category/government" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">حكومية</Link>
+            <Link onClick={() => setIsOpen(false)} to="/category/company" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">شركات</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/university" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">مواعيد الجامعات</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">دورات تدريبية</Link>
+            <Link onClick={() => setIsOpen(false)} to="/category/remote" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">عن بعد</Link>
             <Link onClick={() => setIsOpen(false)} to="/category/employment_training" className="block text-sm font-bold p-3 hover:bg-gray-50 rounded-xl">تدريب منتهي بالتوظيف</Link>
-            <a onClick={() => setIsOpen(false)} href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="block text-sm font-bold p-3 bg-brand-yellow text-brand-black rounded-xl border border-brand-yellow/20 text-center">إنشاء سيرة ذاتية</a>
+            <a onClick={() => setIsOpen(false)} href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="block text-sm font-extrabold p-4 bg-brand-yellow text-brand-black rounded-2xl border border-brand-yellow/20 text-center shadow-lg shadow-brand-yellow/10">إنشاء سيرة ذاتية</a>
             <hr className="border-gray-50 my-2" />
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 font-bold p-2">
               <Link onClick={() => setIsOpen(false)} to="/about" className="p-2">من نحن</Link>
