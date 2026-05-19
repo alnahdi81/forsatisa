@@ -6,7 +6,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from 'react-router-dom';
 import { Menu, X, Instagram, Send } from 'lucide-react';
 import { WhatsAppIcon, TikTokIcon } from './components/Icons';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Scroll to top on route change

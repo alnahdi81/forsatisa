@@ -1,20 +1,44 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { Job, Ad } from '../types';
 import { getStoredJobs, getStoredAds } from '../lib/dataService';
-import { MapPin, Building2, Calendar, Share2, ArrowRight, ExternalLink, ShieldCheck, Briefcase } from 'lucide-react';
+import { MapPin, Building2, Calendar, Share2, ArrowRight, ExternalLink, ShieldCheck, Briefcase, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const [job, setJob] = useState<Job | null>(null);
   const [ad, setAd] = useState<Ad | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSharedData, setIsSharedData] = useState(false);
 
   useEffect(() => {
     if (!id) return;
+    
+    // 1. Try to find in stored jobs
     const allJobs = getStoredJobs();
-    const foundJob = allJobs.find(j => j.id === id);
+    let foundJob = allJobs.find(j => j.id === id);
+    
+    // 2. Fallback: Check if job data is encoded in URL (Share Link feature)
+    if (!foundJob) {
+      const encodedData = searchParams.get('data');
+      if (encodedData) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
+          if (decoded && decoded.id === id) {
+            foundJob = {
+              ...decoded,
+              createdAt: { toDate: () => new Date(decoded.createdAtDate || Date.now()) }
+            };
+            setIsSharedData(true);
+          }
+        } catch (e) {
+          console.error("Failed to parse shared job data", e);
+        }
+      }
+    }
+
     if (foundJob) {
       setJob(foundJob);
       const fullTitle = `فرصتي - ${foundJob.title}`;
@@ -50,18 +74,29 @@ export default function JobDetail() {
 
   const handleShare = async () => {
     if (!job) return;
+    
+    // Generate a shareable URL that includes the job data encoded
+    // This allows sharing links to locally added jobs
+    const jobDataToEncode = {
+      ...job,
+      createdAtDate: job.createdAt?.toDate ? job.createdAt.toDate().toISOString() : new Date().toISOString(),
+      createdAt: undefined // Can't serialize functions
+    };
+    const encoded = btoa(encodeURIComponent(JSON.stringify(jobDataToEncode)));
+    const shareUrl = `${window.location.origin}/job/${job.id}?data=${encoded}`;
+
     const shareData = {
       title: `فرصتي - ${job.title}`,
       text: `اكتشف وظيفة ${job.title} في ${job.company} عبر منصة فرصتي`,
-      url: window.location.href,
+      url: shareUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('تم نسخ الرابط بنجاح!');
+        await navigator.clipboard.writeText(shareUrl);
+        alert('تم نسخ الرابط المشارك بنجاح! الرابط يحتوي على معلومات الوظيفة لكي تظهر للآخرين.');
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -86,6 +121,15 @@ export default function JobDetail() {
         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
         العودة لقائمة الوظائف
       </Link>
+
+      {isSharedData && (
+        <div className="mb-8 bg-blue-50 border border-blue-100 p-6 rounded-3xl flex items-center gap-4">
+          <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+            <Info size={20} />
+          </div>
+          <p className="text-sm text-blue-800 font-bold">هذه الوظيفة تمت مشاركتها معك عبر رابط مباشر. يمكنك أيضاً تصفح جميع الوظائف الحالية في المنصة.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Main Info */}

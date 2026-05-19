@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download } from 'lucide-react';
+import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Job, Ad } from '../types';
 import { getStoredJobs, getStoredAds, saveStoredAds } from '../lib/dataService';
@@ -190,60 +190,75 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans" dir="rtl">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 w-full max-w-md text-center">
-          <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-yellow/20">
-            <ShieldCheck size={40} className="text-brand-black" />
+      <div className="min-h-screen bg-brand-black flex items-center justify-center p-4 font-sans overflow-hidden relative" dir="rtl">
+        {/* Abstract shapes for background */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-yellow/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-yellow/5 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          className="bg-white p-10 rounded-[3rem] shadow-2xl border border-white/10 w-full max-w-md text-center relative z-10"
+        >
+          <div className="w-24 h-24 bg-brand-yellow rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-brand-yellow/30 rotate-3">
+            <ShieldCheck size={48} className="text-brand-black -rotate-3" />
           </div>
-          <h1 className="text-2xl font-black mb-2">لوحة تحكم منصة فرصتي</h1>
-          <p className="text-gray-400 mb-8 font-medium">سجل دخولك لإدارة المحتوى والوظائف</p>
+          <h1 className="text-3xl font-black mb-3 tracking-tight text-brand-black">لوحة التحكم</h1>
+          <p className="text-gray-400 mb-10 font-bold">بوابة الإدارة المركزية لمنصة فرصتي</p>
+          
+          <div className="space-y-4">
             <button 
-            onClick={handleLogin}
-            className="w-full bg-brand-black text-white py-5 rounded-2xl font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
-          >
-            دخول مباشر للنظام
-          </button>
-          <button onClick={() => navigate('/')} className="mt-8 text-gray-400 font-bold hover:text-brand-black transition-colors">العودة للرئيسية</button>
+              onClick={handleLogin}
+              className="w-full bg-brand-black text-white py-6 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-3"
+            >
+              دخول سريع 
+              <ArrowRight size={20} className="rotate-180" />
+            </button>
+            <button onClick={() => navigate('/')} className="w-full py-4 text-gray-400 font-bold hover:text-brand-black transition-colors">
+              العودة للمعاينة العامة
+            </button>
+          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 font-sans pb-20" dir="rtl">
+    <div className="min-h-screen bg-[#fcfcfc] font-sans pb-20" dir="rtl">
+      {/* Decorative bar */}
+      <div className="h-2 bg-brand-yellow w-full"></div>
       {/* Top Navbar */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <nav className="bg-brand-black text-white border-b border-white/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center">
-              <Briefcase size={20} className="text-brand-black" />
+            <div className="w-12 h-12 bg-brand-yellow rounded-2xl flex items-center justify-center rotate-3 shadow-lg shadow-brand-yellow/20">
+              <Briefcase size={24} className="text-brand-black -rotate-3" />
             </div>
-            <h1 className="text-xl font-black">إدارة الوظائف</h1>
+            <div>
+              <h1 className="text-xl font-black">لوحة التحكم</h1>
+              <p className="text-[10px] text-brand-yellow font-black uppercase tracking-tighter">Forsati Admin Portal</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Link 
               to="/"
-              className="bg-gray-100 text-gray-600 px-4 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-200 transition-all"
+              className="bg-white/10 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/20 transition-all border border-white/5"
             >
               <ExternalLink size={18} />
-              <span className="hidden md:inline">عرض الموقع</span>
+              <span className="hidden md:inline font-black text-sm">معاينة الموقع</span>
             </Link>
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="bg-brand-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-800 transition-all shadow-lg shadow-black/10"
+              className="bg-brand-yellow text-brand-black px-6 py-3 rounded-2xl font-black flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-brand-yellow/10"
             >
               <Plus size={20} />
-              <span className="hidden md:inline">{showForm ? 'إغلاق النموذج' : 'إضافة وظيفة جديدة'}</span>
+              <span className="hidden md:inline">{showForm ? 'إغلاق النموذج' : 'إضافة وظيفة'}</span>
             </button>
             <button 
-              onClick={handleClearAll}
-              className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all ml-2"
-              title="مسح كافة البيانات وإعادة التعيين"
+              onClick={handleLogout} 
+              className="p-3 bg-white/5 text-gray-400 rounded-2xl hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/5 group"
             >
-              <Trash2 size={20} />
-            </button>
-            <button onClick={handleLogout} className="p-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all">
-              <LogOut size={20} />
+              <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
             </button>
           </div>
         </div>

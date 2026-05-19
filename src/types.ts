@@ -10,6 +10,7 @@ export interface Job {
   externalLink: string;
   createdAt?: any;
   createdAtManual?: string;
+  createdAtDate?: string;
 }
 
 export interface Ad {
