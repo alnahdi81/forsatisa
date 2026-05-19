@@ -178,22 +178,7 @@ export const getStoredAds = (): Ad[] => {
   }
   
   // Default Ads if none stored
-  return [
-    {
-      id: 'ad1',
-      title: 'بوابة القبول الموحد',
-      image: 'https://images.unsplash.com/photo-1454165833767-0275ef84c6ee?w=1200&auto=format&fit=crop&q=60',
-      link: 'https://jobs.sa',
-      position: 'home_hero'
-    },
-    {
-      id: 'ad2',
-      title: 'سوق العمل السعودي',
-      image: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&auto=format&fit=crop&q=60',
-      link: 'https://hrsd.gov.sa',
-      position: 'sidebar'
-    }
-  ];
+  return [];
 };
 
 export const saveStoredAds = (ads: Ad[]) => {

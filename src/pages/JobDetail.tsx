@@ -223,19 +223,6 @@ export default function JobDetail() {
               </li>
             </ul>
           </div>
-
-          {ad ? (
-            <a href={ad.link} target="_blank" rel="noopener noreferrer" className="block w-full overflow-hidden rounded-3xl shadow-lg border border-gray-100">
-              <img src={ad.image} alt={ad.title} className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
-            </a>
-          ) : (
-            <div className="w-full aspect-[3/4] bg-gray-100 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 p-6 text-center space-y-4">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <Briefcase size={24} className="text-gray-300" />
-              </div>
-              <p className="text-sm font-medium">مساحة إعلانية<br/>Ads Here</p>
-            </div>
-          )}
         </aside>
       </div>
     </div>
