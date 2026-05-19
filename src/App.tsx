@@ -141,13 +141,15 @@ function Footer() {
           </div>
         </div>
         <div>
-          <h3 className="font-bold mb-4">روابط سريعة</h3>
+          <h3 className="font-bold mb-4">الأقسام</h3>
           <ul className="space-y-2 text-sm text-gray-600 font-medium">
-            <li><Link to="/" className="hover:text-brand-yellow">الرئيسية</Link></li>
-            <li><Link to="/about" className="hover:text-brand-yellow">من نحن</Link></li>
-            <li><Link to="/contact" className="hover:text-brand-yellow">اتصل بنا</Link></li>
-            <li><Link to="/faq" className="hover:text-brand-yellow">الأسئلة الشائعة</Link></li>
-            <li><a href="https://resume-pro-etoh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-brand-yellow font-bold hover:underline">إنشاء سيرة ذاتية</a></li>
+            <li><Link to="/category/military" className="hover:text-brand-yellow">وظائف عسكرية</Link></li>
+            <li><Link to="/category/government" className="hover:text-brand-yellow">وظائف حكومية</Link></li>
+            <li><Link to="/category/company" className="hover:text-brand-yellow">وظائف الشركات</Link></li>
+            <li><Link to="/category/remote" className="hover:text-brand-yellow">وظائف عن بعد</Link></li>
+            <li><Link to="/category/university" className="hover:text-brand-yellow">مواعيد الجامعات</Link></li>
+            <li><Link to="/category/training" className="hover:text-brand-yellow">دورات تدريبية</Link></li>
+            <li><Link to="/category/employment_training" className="hover:text-brand-yellow">تدريب منتهي بالتوظيف</Link></li>
           </ul>
         </div>
         <div>

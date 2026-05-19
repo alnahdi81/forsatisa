@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Job": {
+      "title": "Job",
+      "description": "A job posting",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "company": { "type": "string" },
+        "category": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "soon", "expiring", "expired"]
+        },
+        "location": { "type": "string" },
+        "image": { "type": "string" },
+        "externalLink": { "type": "string" },
+        "createdAtManual": { "type": "string" },
+        "createdAtDate": { "type": "string" }
+      },
+      "required": ["id", "title", "company", "category", "status", "externalLink"]
+    },
+    "Ad": {
+      "title": "Ad",
+      "description": "An advertisement banner",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "image": { "type": "string" },
+        "link": { "type": "string" },
+        "position": {
+          "type": "string",
+          "enum": ["home_hero", "sidebar", "job_detail"]
+        }
+      },
+      "required": ["id", "title", "image", "link", "position"]
+    }
+  },
+  "firestore": {
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Collection of job postings"
+    },
+    "/ads/{adId}": {
+      "schema": "Ad",
+      "description": "Collection of ads"
+    }
+  }
+}
