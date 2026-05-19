@@ -13,6 +13,13 @@ export default function Admin() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = React.useRef(false);
+
+  // Sync ref with state
+  useEffect(() => {
+    isSubmittingRef.current = isSubmitting;
+  }, [isSubmitting]);
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
@@ -152,16 +159,19 @@ export default function Admin() {
     setIsSubmitting(true);
     setSuccessMsg('');
     
+    console.log('Submission process started...');
+    
     // Safety timeout for the entire submission process
     const submissionTimeout = setTimeout(() => {
-      if (isSubmitting) {
+      if (isSubmittingRef.current) {
         setIsSubmitting(false);
-        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.');
+        console.warn('Submission timed out after 15 seconds');
+        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً. قد يكون هناك مشكلة في الاتصال. يرجى إعادة تحميل الصفحة والمحاولة مرة أخرى.');
       }
     }, 15000);
 
     try {
-      console.log('Publishing starting...', { editingId });
+      console.log('Validating and preparing data...');
       
       let isoDate = new Date().toISOString();
       if (formData.createdAtManual) {
@@ -185,13 +195,17 @@ export default function Admin() {
       };
 
       if (editingId) {
+        console.log('Updating existing job:', editingId);
         await updateJob(editingId, jobData);
       } else {
-        await addJob(jobData as any);
+        console.log('Adding new job...');
+        const newId = await addJob(jobData as any);
+        console.log('New job added with ID:', newId);
       }
       
       clearTimeout(submissionTimeout);
-      setIsSubmitting(false); // Clear spinner immediately
+      setIsSubmitting(false); 
+      console.log('Submission successful!');
       setSuccessMsg('🚀 تم نشر الوظيفة بنجاح وستظهر في الموقع الآن!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
@@ -202,7 +216,7 @@ export default function Admin() {
 
     } catch (error: any) {
       clearTimeout(submissionTimeout);
-      console.error('Submission error details:', error);
+      console.error('CRITICAL SUBMISSION ERROR:', error);
       alert('حدث خطأ أثناء النشر: ' + (error.message || 'يرجى المحاولة مرة أخرى'));
       setIsSubmitting(false);
     }

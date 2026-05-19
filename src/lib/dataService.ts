@@ -112,25 +112,32 @@ export const getStoredJobs = async (): Promise<Job[]> => {
 };
 
 export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string> => {
+  console.log('Firebase: addJob called with data:', job);
   try {
     const jobsRef = collection(db, 'jobs');
-    const docRef = await addDoc(jobsRef, {
+    const saveData = {
       ...job,
       createdAtDate: job.createdAtDate || new Date().toISOString()
-    });
+    };
+    console.log('Firebase: Attempting addDoc...');
+    const docRef = await addDoc(jobsRef, saveData);
+    console.log('Firebase: addDoc successful, ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error adding job to Firestore:', error);
+    console.error('Firebase: Error adding job to Firestore:', error);
     throw error;
   }
 };
 
 export const updateJob = async (id: string, job: Partial<Job>) => {
+  console.log('Firebase: updateJob called for ID:', id, 'with data:', job);
   try {
     const jobRef = doc(db, 'jobs', id);
+    console.log('Firebase: Attempting setDoc (merge)...');
     await setDoc(jobRef, job, { merge: true });
+    console.log('Firebase: setDoc successful');
   } catch (error) {
-    console.error('Error updating job in Firestore:', error);
+    console.error('Firebase: Error updating job in Firestore:', error);
     throw error;
   }
 };
