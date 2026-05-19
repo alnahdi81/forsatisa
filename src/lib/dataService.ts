@@ -148,23 +148,17 @@ const MOCK_JOBS: Job[] = [
 
 export const getStoredJobs = (): Job[] => {
   const STORAGE_KEY = 'forsati_jobs';
+  const legacyKeys = ['jobs', 'all_jobs', 'forsati-jobs'];
+  
   const saved = localStorage.getItem(STORAGE_KEY);
   
-  const hardcodedJobs = MOCK_JOBS.map(j => {
-    const d = new Date(j.createdAtDate || Date.now());
-    return {
-      ...j,
-      createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
-    };
-  });
-
-  let userJobs: Job[] = [];
+  let jobs: Job[] = [];
 
   if (saved !== null) {
     try {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
-        userJobs = parsed.map((j: any) => {
+        jobs = parsed.map((j: any) => {
           let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
           if (typeof dateVal === 'object' && dateVal?.seconds) {
             dateVal = dateVal.seconds * 1000;
@@ -179,16 +173,60 @@ export const getStoredJobs = (): Job[] => {
     } catch (e) {
       console.error('Error parsing jobs', e);
     }
+  } 
+  
+  // If no data in main key, check legacy keys OR initialize from MOCK_JOBS
+  if (jobs.length === 0 && (saved === null || saved === '[]')) {
+    const jobMap = new Map<string, Job>();
+
+    // 1. Load Hardcoded base
+    MOCK_JOBS.forEach(j => {
+      const d = new Date(j.createdAtDate || Date.now());
+      jobMap.set(j.id, {
+        ...j,
+        createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+      });
+    });
+
+    // 2. Try to recover from legacy keys
+    legacyKeys.forEach(key => {
+      const legacyData = localStorage.getItem(key);
+      if (legacyData) {
+        try {
+          const parsed = JSON.parse(legacyData);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((j: any) => {
+              if (j && j.id) {
+                let dateVal = j.createdAtDate || j.createdAt || j.createdAtManual;
+                const d = new Date(dateVal || Date.now());
+                jobMap.set(j.id, {
+                  ...j,
+                  createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
+                });
+              }
+            });
+          }
+        } catch (e) { /* ignore */ }
+      }
+    });
+
+    const initialSet = Array.from(jobMap.values());
+    
+    // Save this state so it becomes the authoritative editable/deletable set
+    const dataToSave = initialSet.map(j => ({
+      ...j,
+      createdAtDate: j.createdAt?.toDate ? j.createdAt.toDate().toISOString() : new Date().toISOString()
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    
+    return initialSet.sort((a, b) => {
+      const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+      const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+      return timeB - timeA;
+    });
   }
 
-  // Combine both: hardcoded + user additions
-  // Use a Map to avoid duplicates by ID (if a user somehow adds a job that exists in MOCK_JOBS)
-  const allJobsMap = new Map<string, Job>();
-  
-  hardcodedJobs.forEach(j => allJobsMap.set(j.id, j));
-  userJobs.forEach(j => allJobsMap.set(j.id, j));
-
-  return Array.from(allJobsMap.values()).sort((a, b) => {
+  return jobs.sort((a, b) => {
     const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
     const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
     return timeB - timeA;
