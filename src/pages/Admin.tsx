@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, LogOut, ShieldCheck, Briefcase, Bell, Image as ImageIcon, Link as LinkIcon, Calendar, Info, Building2, MapPin, CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink, Copy, Download, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Job, Ad } from '../types';
 import { getStoredJobs, getStoredAds, addJob, updateJob, deleteJob, saveAd, deleteAd, subscribeToJobs, subscribeToAds } from '../lib/dataService';
