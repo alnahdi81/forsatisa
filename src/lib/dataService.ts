@@ -116,7 +116,7 @@ export const addJob = async (job: Omit<Job, 'id' | 'createdAt'>): Promise<string
   
   // Timeout for Firestore operation
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 10000)
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 5000)
   );
 
   try {
@@ -145,7 +145,7 @@ export const updateJob = async (id: string, job: Partial<Job>) => {
   
   // Timeout for Firestore operation
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 10000)
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً، يرجى المحاولة مرة أخرى.')), 5000)
   );
 
   try {
@@ -187,7 +187,7 @@ export const getStoredAds = async (): Promise<Ad[]> => {
 
 export const saveAd = async (ad: Omit<Ad, 'id'>, id?: string) => {
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً.')), 10000)
+    setTimeout(() => reject(new Error('العملية استغرقت وقتاً طويلاً.')), 5000)
   );
   try {
     const adsRef = collection(db, 'ads');

@@ -98,13 +98,13 @@ export default function Admin() {
     try {
       await saveAd(adFormData, editingId || undefined);
       setIsSubmitting(false);
-      setSuccessMsg('✅ تم حفظ التغييرات بنجاح!');
+      handleReset(); // Reset immediately
+      setSuccessMsg('✅ تم حفظ التغييرات!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
       setTimeout(() => {
-        handleReset();
         setSuccessMsg('');
-      }, 3000);
+      }, 2000);
     } catch (error) {
       console.error('Ad submission error:', error);
       alert('حدث خطأ أثناء حفظ الإعلان');
@@ -207,17 +207,18 @@ export default function Admin() {
       }
       
       clearTimeout(submissionTimeout);
-      setIsSubmitting(false); 
-      console.log('Admin: Flow complete, showing success message');
       
-      setSuccessMsg('🚀 تم نشر الوظيفة بنجاح وستظهر في الموقع الآن!');
+      // Fast feedback: clear state immediately
+      setIsSubmitting(false); 
+      handleReset();
+      
+      setSuccessMsg('🚀 تم نشر الوظيفة بنجاح!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
+      // Only keep the success message for 2 seconds
       setTimeout(() => {
-        handleReset();
         setSuccessMsg('');
-        console.log('Admin: Reset form after success');
-      }, 3000);
+      }, 2000);
 
     } catch (error: any) {
       clearTimeout(submissionTimeout);
