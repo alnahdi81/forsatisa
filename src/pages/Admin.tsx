@@ -80,11 +80,17 @@ export default function Admin() {
     e.preventDefault();
     if (isSubmitting) return;
 
+    if (!adFormData.title || !adFormData.image || !adFormData.link) {
+      alert('يجب ملء جميع حقول الإعلان');
+      return;
+    }
+
     setIsSubmitting(true);
     setSuccessMsg('');
 
     try {
       await saveAd(adFormData, editingId || undefined);
+      setIsSubmitting(false);
       setSuccessMsg('✅ تم حفظ التغييرات بنجاح!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
@@ -95,7 +101,6 @@ export default function Admin() {
     } catch (error) {
       console.error('Ad submission error:', error);
       alert('حدث خطأ أثناء حفظ الإعلان');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -138,13 +143,26 @@ export default function Admin() {
     e.preventDefault();
     if (isSubmitting) return;
 
+    // Basic validation
+    if (!formData.title || !formData.company || !formData.externalLink) {
+      alert('يجب ملء الحقول الأساسية: المسمى الوظيفي، جهة التوظيف، ورابط التقديم');
+      return;
+    }
+
     setIsSubmitting(true);
-    setSuccessMsg(''); // Clear old messages
+    setSuccessMsg('');
     
-    console.log('Submission started...', editingId ? 'Updating' : 'Adding');
+    // Safety timeout for the entire submission process
+    const submissionTimeout = setTimeout(() => {
+      if (isSubmitting) {
+        setIsSubmitting(false);
+        alert('يبدو أن عملية النشر تستغرق وقتاً طويلاً. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.');
+      }
+    }, 15000);
 
     try {
-      // Validate date
+      console.log('Publishing starting...', { editingId });
+      
       let isoDate = new Date().toISOString();
       if (formData.createdAtManual) {
         const d = new Date(formData.createdAtManual);
@@ -153,49 +171,39 @@ export default function Admin() {
         }
       }
 
+      const jobData = {
+        title: formData.title.trim(),
+        company: formData.company.trim(),
+        category: formData.category,
+        location: formData.location.trim(),
+        externalLink: formData.externalLink.trim(),
+        image: formData.image.trim(),
+        description: formData.description.trim(),
+        status: formData.status,
+        createdAtManual: formData.createdAtManual,
+        createdAtDate: isoDate
+      };
+
       if (editingId) {
-        await updateJob(editingId, {
-          title: formData.title,
-          company: formData.company,
-          category: formData.category,
-          location: formData.location,
-          externalLink: formData.externalLink,
-          image: formData.image,
-          description: formData.description,
-          status: formData.status,
-          createdAtManual: formData.createdAtManual,
-          createdAtDate: isoDate
-        });
-        console.log('Update successful');
+        await updateJob(editingId, jobData);
       } else {
-        await addJob({
-          title: formData.title,
-          company: formData.company,
-          category: formData.category,
-          location: formData.location,
-          externalLink: formData.externalLink,
-          image: formData.image,
-          description: formData.description,
-          status: formData.status,
-          createdAtManual: formData.createdAtManual,
-          createdAtDate: isoDate
-        } as any);
-        console.log('Add successful');
+        await addJob(jobData as any);
       }
       
+      clearTimeout(submissionTimeout);
+      setIsSubmitting(false); // Clear spinner immediately
       setSuccessMsg('🚀 تم نشر الوظيفة بنجاح وستظهر في الموقع الآن!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // Delay reset so they see the success message
       setTimeout(() => {
         handleReset();
         setSuccessMsg('');
-      }, 4000);
+      }, 3000);
 
     } catch (error: any) {
-      console.error('Submission failed:', error);
-      alert('حدث خطأ أثناء النشر: ' + (error.message || 'خطأ غير معروف'));
-    } finally {
+      clearTimeout(submissionTimeout);
+      console.error('Submission error details:', error);
+      alert('حدث خطأ أثناء النشر: ' + (error.message || 'يرجى المحاولة مرة أخرى'));
       setIsSubmitting(false);
     }
   };
