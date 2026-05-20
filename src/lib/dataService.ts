@@ -77,6 +77,13 @@ export const subscribeToJobs = (callback: (jobs: Job[]) => void, onError?: (erro
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
     });
+    // Secondary in-memory stable sorting to guarantee absolute ordering with newest first
+    jobs.sort((a, b) => {
+      const timeA = a.createdAtDate ? new Date(a.createdAtDate).getTime() : 0;
+      const timeB = b.createdAtDate ? new Date(b.createdAtDate).getTime() : 0;
+      if (timeB !== timeA) return timeB - timeA;
+      return b.id.localeCompare(a.id);
+    });
     jobsCache = jobs; // Update cache
     callback(jobs);
   }, (error) => {
@@ -114,6 +121,13 @@ export const getStoredJobs = async (): Promise<Job[]> => {
         id: doc.id,
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
+    });
+    // Secondary in-memory stable sorting to guarantee absolute ordering with newest first
+    jobs.sort((a, b) => {
+      const timeA = a.createdAtDate ? new Date(a.createdAtDate).getTime() : 0;
+      const timeB = b.createdAtDate ? new Date(b.createdAtDate).getTime() : 0;
+      if (timeB !== timeA) return timeB - timeA;
+      return b.id.localeCompare(a.id);
     });
     jobsCache = jobs;
     return jobs;

@@ -177,6 +177,9 @@ export default function Admin() {
       if (formData.createdAtManual) {
         const d = new Date(formData.createdAtManual);
         if (!isNaN(d.getTime())) {
+          // Set current precise hours, minutes, seconds, milliseconds so that multiple jobs published on the same day can be sorted precisely in the order they were submitted
+          const now = new Date();
+          d.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
           isoDate = d.toISOString();
         }
       }
