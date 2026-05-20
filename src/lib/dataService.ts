@@ -63,27 +63,71 @@ export const seedDatabaseIfEmpty = async () => {
   }
 };
 
+export const robustSortJobs = (jobs: Job[]): Job[] => {
+  return jobs.sort((a, b) => {
+    let timeA = 0;
+    if (a.createdAtDate) {
+      const parsed = new Date(a.createdAtDate).getTime();
+      if (!isNaN(parsed)) timeA = parsed;
+    } else if (a.createdAt?.toDate && typeof a.createdAt.toDate === 'function') {
+      const parsed = a.createdAt.toDate().getTime();
+      if (!isNaN(parsed)) timeA = parsed;
+    } else if (a.createdAtManual) {
+      const parsed = new Date(a.createdAtManual).getTime();
+      if (!isNaN(parsed)) timeA = parsed;
+    }
+
+    let timeB = 0;
+    if (b.createdAtDate) {
+      const parsed = new Date(b.createdAtDate).getTime();
+      if (!isNaN(parsed)) timeB = parsed;
+    } else if (b.createdAt?.toDate && typeof b.createdAt.toDate === 'function') {
+      const parsed = b.createdAt.toDate().getTime();
+      if (!isNaN(parsed)) timeB = parsed;
+    } else if (b.createdAtManual) {
+      const parsed = new Date(b.createdAtManual).getTime();
+      if (!isNaN(parsed)) timeB = parsed;
+    }
+
+    // Newest first (descending order)
+    if (timeB !== timeA) {
+      return timeB - timeA;
+    }
+
+    const titleB = b.title || '';
+    const titleA = a.title || '';
+    if (titleB !== titleA) {
+      return titleB.localeCompare(titleA);
+    }
+    return b.id.localeCompare(a.id);
+  });
+};
+
 export const subscribeToJobs = (callback: (jobs: Job[]) => void, onError?: (error: any) => void) => {
   const jobsRef = collection(db, 'jobs');
-  const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
   
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(jobsRef, (snapshot) => {
     const jobs = snapshot.docs.map(doc => {
       const data = doc.data();
-      const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
+      let d = new Date();
+      if (data.createdAtDate) {
+        d = new Date(data.createdAtDate);
+      } else if (data.createdAtManual) {
+        d = new Date(data.createdAtManual);
+      } else if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+        d = data.createdAt.toDate();
+      } else if (data.createdAt && (data.createdAt as any).seconds) {
+        d = new Date((data.createdAt as any).seconds * 1000);
+      }
       return {
         ...data,
         id: doc.id,
+        createdAtDate: data.createdAtDate || d.toISOString(),
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
     });
-    // Secondary in-memory stable sorting to guarantee absolute ordering with newest first
-    jobs.sort((a, b) => {
-      const timeA = a.createdAtDate ? new Date(a.createdAtDate).getTime() : 0;
-      const timeB = b.createdAtDate ? new Date(b.createdAtDate).getTime() : 0;
-      if (timeB !== timeA) return timeB - timeA;
-      return b.id.localeCompare(a.id);
-    });
+    
+    robustSortJobs(jobs);
     jobsCache = jobs; // Update cache
     callback(jobs);
   }, (error) => {
@@ -110,25 +154,29 @@ export const getStoredJobs = async (): Promise<Job[]> => {
 
   try {
     const jobsRef = collection(db, 'jobs');
-    const q = query(jobsRef, orderBy('createdAtDate', 'desc'));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(jobsRef);
     
     const jobs = snapshot.docs.map(doc => {
       const data = doc.data();
-      const d = data.createdAtDate ? new Date(data.createdAtDate) : new Date();
+      let d = new Date();
+      if (data.createdAtDate) {
+        d = new Date(data.createdAtDate);
+      } else if (data.createdAtManual) {
+        d = new Date(data.createdAtManual);
+      } else if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+        d = data.createdAt.toDate();
+      } else if (data.createdAt && (data.createdAt as any).seconds) {
+        d = new Date((data.createdAt as any).seconds * 1000);
+      }
       return {
         ...data,
         id: doc.id,
+        createdAtDate: data.createdAtDate || d.toISOString(),
         createdAt: { toDate: () => isNaN(d.getTime()) ? new Date() : d }
       } as Job;
     });
-    // Secondary in-memory stable sorting to guarantee absolute ordering with newest first
-    jobs.sort((a, b) => {
-      const timeA = a.createdAtDate ? new Date(a.createdAtDate).getTime() : 0;
-      const timeB = b.createdAtDate ? new Date(b.createdAtDate).getTime() : 0;
-      if (timeB !== timeA) return timeB - timeA;
-      return b.id.localeCompare(a.id);
-    });
+    
+    robustSortJobs(jobs);
     jobsCache = jobs;
     return jobs;
   } catch (error) {
