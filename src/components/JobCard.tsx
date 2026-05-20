@@ -59,7 +59,7 @@ export default function JobCard({ job }: JobCardProps) {
       whileHover={{ scale: 1.01 }}
       className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all group relative h-full flex flex-col"
     >
-      <Link to={`/job/${job.id}`} state={{ job }} className="absolute inset-0 z-10" aria-label={job.title} />
+      <Link to={`/job/${job.id}`} state={{ job: { ...job, createdAt: undefined } }} className="absolute inset-0 z-10" aria-label={job.title} />
       
       {/* Top Header */}
       <div className="flex justify-between items-start mb-6">

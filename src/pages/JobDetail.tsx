@@ -22,8 +22,8 @@ export default function JobDetail() {
     if (!id) return;
     
     const loadData = async () => {
-      // If we don't have the job from state, or id changed, fetch it
-      if (!job || job.id !== id) {
+      // If we don't have the job from state, or id changed, or we need to reconstitute the custom Firestore timestamp function
+      if (!job || job.id !== id || !job.createdAt || typeof job.createdAt.toDate !== 'function') {
         setLoading(true);
         
         // 1. Try to find by ID (faster, uses cache)
